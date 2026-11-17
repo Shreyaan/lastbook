@@ -1,0 +1,425 @@
+{
+ "about": "Encyclopedias setup offers one by one. Written by tools/kiwix_pins.py; edit that, not this.",
+ "encyclopedias": [
+  {
+   "id": "mdwiki_en_all_maxi",
+   "title": "Medical encyclopedia",
+   "summary": "MDWiki: plain-language articles on conditions, medicines and first aid.",
+   "icon": "health",
+   "lang": "en",
+   "group": "English",
+   "kiwix_folder": "other",
+   "file": {
+    "name": "mdwiki_en_all_maxi_2025-11.zim",
+    "url": "https://mirror.download.kiwix.org/zim/other/mdwiki_en_all_maxi_2025-11.zim",
+    "size": 2302838768,
+    "sha256": "ee51df7860dbcab8c628aad32cf9972726ab708d784cdaf3e217d596920edf80"
+   }
+  },
+  {
+   "id": "appropedia_en_all_maxi",
+   "title": "Appropedia",
+   "summary": "Appropriate technology: water, sanitation, energy and building projects.",
+   "icon": "repair",
+   "lang": "en",
+   "group": "English",
+   "kiwix_folder": "other",
+   "file": {
+    "name": "appropedia_en_all_maxi_2026-02.zim",
+    "url": "https://mirror.download.kiwix.org/zim/other/appropedia_en_all_maxi_2026-02.zim",
+    "size": 581641351,
+    "sha256": "dcf200ba723c27397e1c9a2e4891ff91fa13993df1fa285315190d8525a53469"
+   }
+  },
+  {
+   "id": "wikibooks_en_all_maxi",
+   "title": "Wikibooks",
+   "summary": "Open textbooks and how-to manuals, from cooking to electronics.",
+   "icon": "book",
+   "lang": "en",
+   "group": "English",
+   "kiwix_folder": "wikibooks",
+   "file": {
+    "name": "wikibooks_en_all_maxi_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikibooks/wikibooks_en_all_maxi_2026-10.zim",
+    "size": 4739739728,
+    "sha256": "835014cde2c385f80a6388847fb8962429966a3a64a03b58552f1684cc83e7c8"
+   }
+  },
+  {
+   "id": "wikipedia_en_all_nopic",
+   "title": "Wikipedia",
+   "summary": "The full English encyclopedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "en",
+   "group": "English",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_en_all_nopic_2026-06.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_en_all_nopic_2026-06.zim",
+    "size": 52690706555,
+    "sha256": "441a56d9e05b2d98f8ae9acb7986a513ed47904d73852c92dc6b7d50baa122e5"
+   }
+  },
+  {
+   "id": "wikipedia_hi_medicine_nopic",
+   "title": "Medical Wikipedia in Hindi (हिन्दी)",
+   "summary": "Wikipedia’s health and medicine articles in Hindi, text only.",
+   "icon": "health",
+   "lang": "hi",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_hi_medicine_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_hi_medicine_nopic_2026-10.zim",
+    "size": 26742022,
+    "sha256": "c9b33d9c9dac129c7dd545c4e3c92295e9e36667d5ff092afce8c4450c41e8f5"
+   }
+  },
+  {
+   "id": "wikipedia_hi_all_nopic",
+   "title": "Wikipedia in Hindi (हिन्दी)",
+   "summary": "The whole Hindi Wikipedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "hi",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_hi_all_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_hi_all_nopic_2026-10.zim",
+    "size": 917954595,
+    "sha256": "fa9799af024645f52bc96fbbd3d74b87c4c198ad646671dfda3fbe2572f9ba72"
+   }
+  },
+  {
+   "id": "wikipedia_bn_medicine_nopic",
+   "title": "Medical Wikipedia in Bengali (বাংলা)",
+   "summary": "Wikipedia’s health and medicine articles in Bengali, text only.",
+   "icon": "health",
+   "lang": "bn",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_bn_medicine_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_bn_medicine_nopic_2026-10.zim",
+    "size": 56145219,
+    "sha256": "836211690715a29d745f40dcd890da67272308fb671397b173ef9f70f11b4d82"
+   }
+  },
+  {
+   "id": "wikipedia_bn_all_nopic",
+   "title": "Wikipedia in Bengali (বাংলা)",
+   "summary": "The whole Bengali Wikipedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "bn",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_bn_all_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_bn_all_nopic_2026-10.zim",
+    "size": 1608116575,
+    "sha256": "5c443627bff5c8238aaa494ba6e077d2638a97ab50454b9c9e5921c07c07007c"
+   }
+  },
+  {
+   "id": "wikipedia_te_medicine_nopic",
+   "title": "Medical Wikipedia in Telugu (తెలుగు)",
+   "summary": "Wikipedia’s health and medicine articles in Telugu, text only.",
+   "icon": "health",
+   "lang": "te",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_te_medicine_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_te_medicine_nopic_2026-10.zim",
+    "size": 18027689,
+    "sha256": "4ec8276e2567358e5b4463dae86ff7bd29af9a6dc2c708fa6fef5eb12f57c842"
+   }
+  },
+  {
+   "id": "wikipedia_te_all_nopic",
+   "title": "Wikipedia in Telugu (తెలుగు)",
+   "summary": "The whole Telugu Wikipedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "te",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_te_all_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_te_all_nopic_2026-10.zim",
+    "size": 867825410,
+    "sha256": "bc16c0d655f5d2a617c111deeba2f4ad285abe4f04d2299b9f3be1e8888acf24"
+   }
+  },
+  {
+   "id": "wikipedia_mr_medicine_nopic",
+   "title": "Medical Wikipedia in Marathi (मराठी)",
+   "summary": "Wikipedia’s health and medicine articles in Marathi, text only.",
+   "icon": "health",
+   "lang": "mr",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_mr_medicine_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_mr_medicine_nopic_2026-10.zim",
+    "size": 7728839,
+    "sha256": "46872fc0223cd3319c4aca24968c067fa4dca877f964f50c4233966ebe5049e2"
+   }
+  },
+  {
+   "id": "wikipedia_mr_all_nopic",
+   "title": "Wikipedia in Marathi (मराठी)",
+   "summary": "The whole Marathi Wikipedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "mr",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_mr_all_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_mr_all_nopic_2026-10.zim",
+    "size": 389894206,
+    "sha256": "074806d650c12602e777820273163fe26164a6f551e5f73fd6b4c8a431ee461a"
+   }
+  },
+  {
+   "id": "wikipedia_ta_medicine_nopic",
+   "title": "Medical Wikipedia in Tamil (தமிழ்)",
+   "summary": "Wikipedia’s health and medicine articles in Tamil, text only.",
+   "icon": "health",
+   "lang": "ta",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_ta_medicine_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_ta_medicine_nopic_2026-10.zim",
+    "size": 32371205,
+    "sha256": "f4a2d2b9ea9c0700d4529aab27a43bbb982f35a58cad57e7a3236aa7c05d4b3e"
+   }
+  },
+  {
+   "id": "wikipedia_ta_all_nopic",
+   "title": "Wikipedia in Tamil (தமிழ்)",
+   "summary": "The whole Tamil Wikipedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "ta",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_ta_all_nopic_2026-06.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_ta_all_nopic_2026-06.zim",
+    "size": 1020713151,
+    "sha256": "460bbd2d6b680441ffd40e3bed767a54f991157a34559451db3027118b4f3d3c"
+   }
+  },
+  {
+   "id": "wikipedia_ur_medicine_nopic",
+   "title": "Medical Wikipedia in Urdu (اردو)",
+   "summary": "Wikipedia’s health and medicine articles in Urdu, text only.",
+   "icon": "health",
+   "lang": "ur",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_ur_medicine_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_ur_medicine_nopic_2026-10.zim",
+    "size": 17181283,
+    "sha256": "1a152f5e93b1c85eb2800a0c8d98ac2b2b584345c470c7f3df80b29c7b2df1bd"
+   }
+  },
+  {
+   "id": "wikipedia_ur_all_nopic",
+   "title": "Wikipedia in Urdu (اردو)",
+   "summary": "The whole Urdu Wikipedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "ur",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_ur_all_nopic_2026-10a.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_ur_all_nopic_2026-10a.zim",
+    "size": 2829545556,
+    "sha256": "0f012ab9c141610e85e1a0d0836329d4599360b33d7b76a56e6517da20c8976b"
+   }
+  },
+  {
+   "id": "wikipedia_gu_medicine_nopic",
+   "title": "Medical Wikipedia in Gujarati (ગુજરાતી)",
+   "summary": "Wikipedia’s health and medicine articles in Gujarati, text only.",
+   "icon": "health",
+   "lang": "gu",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_gu_medicine_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_gu_medicine_nopic_2026-10.zim",
+    "size": 7373585,
+    "sha256": "5464ae1f33608d016d169e641d0c53c2bbe7b94cff260589dc60f37edc711c4e"
+   }
+  },
+  {
+   "id": "wikipedia_gu_all_nopic",
+   "title": "Wikipedia in Gujarati (ગુજરાતી)",
+   "summary": "The whole Gujarati Wikipedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "gu",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_gu_all_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_gu_all_nopic_2026-10.zim",
+    "size": 117835531,
+    "sha256": "ea64950b59d535a16c6ddf257c7e4b0d894018641bc33bde0e68ca1c0294548c"
+   }
+  },
+  {
+   "id": "wikipedia_kn_medicine_nopic",
+   "title": "Medical Wikipedia in Kannada (ಕನ್ನಡ)",
+   "summary": "Wikipedia’s health and medicine articles in Kannada, text only.",
+   "icon": "health",
+   "lang": "kn",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_kn_medicine_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_kn_medicine_nopic_2026-10.zim",
+    "size": 18964815,
+    "sha256": "fed062b890a66164044fcb3fabd77011860723c0bbdea0474bb7d24456d4fb6c"
+   }
+  },
+  {
+   "id": "wikipedia_kn_all_nopic",
+   "title": "Wikipedia in Kannada (ಕನ್ನಡ)",
+   "summary": "The whole Kannada Wikipedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "kn",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_kn_all_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_kn_all_nopic_2026-10.zim",
+    "size": 293054819,
+    "sha256": "70869b3f591480b62268cf6c8882b577b65f1228b6a8619816ec70a314049379"
+   }
+  },
+  {
+   "id": "wikipedia_ml_medicine_nopic",
+   "title": "Medical Wikipedia in Malayalam (മലയാളം)",
+   "summary": "Wikipedia’s health and medicine articles in Malayalam, text only.",
+   "icon": "health",
+   "lang": "ml",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_ml_medicine_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_ml_medicine_nopic_2026-10.zim",
+    "size": 33470599,
+    "sha256": "39235188291f1968bbda1e414edc5b22b5b85901a41be2aaa1bcc48839e3a932"
+   }
+  },
+  {
+   "id": "wikipedia_ml_all_nopic",
+   "title": "Wikipedia in Malayalam (മലയാളം)",
+   "summary": "The whole Malayalam Wikipedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "ml",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_ml_all_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_ml_all_nopic_2026-10.zim",
+    "size": 618277937,
+    "sha256": "fb54dcb04e67fbe3b52eb71e4b8382c862838b4fca4d4da914590e3a610a7d6d"
+   }
+  },
+  {
+   "id": "wikipedia_or_medicine_nopic",
+   "title": "Medical Wikipedia in Odia (ଓଡ଼ିଆ)",
+   "summary": "Wikipedia’s health and medicine articles in Odia, text only.",
+   "icon": "health",
+   "lang": "or",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_or_medicine_nopic_2026-09.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_or_medicine_nopic_2026-09.zim",
+    "size": 19289469,
+    "sha256": "8f59d9c1380c8d43194e15c1e04153886883fc791361811bd4805ee1e17a2f50"
+   }
+  },
+  {
+   "id": "wikipedia_or_all_nopic",
+   "title": "Wikipedia in Odia (ଓଡ଼ିଆ)",
+   "summary": "The whole Odia Wikipedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "or",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_or_all_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_or_all_nopic_2026-10.zim",
+    "size": 106193348,
+    "sha256": "ac476f8c543269abeeaf149a4829b19f51efd5b431d45e58cb2b8ef6db6afb00"
+   }
+  },
+  {
+   "id": "wikipedia_pa_medicine_nopic",
+   "title": "Medical Wikipedia in Punjabi (ਪੰਜਾਬੀ)",
+   "summary": "Wikipedia’s health and medicine articles in Punjabi, text only.",
+   "icon": "health",
+   "lang": "pa",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_pa_medicine_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_pa_medicine_nopic_2026-10.zim",
+    "size": 7351650,
+    "sha256": "dcdc313ce9727e10920a3e2947e883d4f8916bb34dc38710c7e84661a37cb857"
+   }
+  },
+  {
+   "id": "wikipedia_pa_all_nopic",
+   "title": "Wikipedia in Punjabi (ਪੰਜਾਬੀ)",
+   "summary": "The whole Punjabi Wikipedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "pa",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_pa_all_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_pa_all_nopic_2026-10.zim",
+    "size": 247035209,
+    "sha256": "eb1a65b7932d7eef2686375cc89ade911e6ce0301b631a5cb1828846e0532f89"
+   }
+  },
+  {
+   "id": "wikipedia_as_medicine_nopic",
+   "title": "Medical Wikipedia in Assamese (অসমীয়া)",
+   "summary": "Wikipedia’s health and medicine articles in Assamese, text only.",
+   "icon": "health",
+   "lang": "as",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_as_medicine_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_as_medicine_nopic_2026-10.zim",
+    "size": 8576278,
+    "sha256": "c9107f89cd496bf8f6c4555e81b6b775d465e2840c047cb0b3fd936a902c036f"
+   }
+  },
+  {
+   "id": "wikipedia_as_all_nopic",
+   "title": "Wikipedia in Assamese (অসমীয়া)",
+   "summary": "The whole Assamese Wikipedia, text only (no pictures).",
+   "icon": "wiki",
+   "lang": "as",
+   "group": "Indian languages",
+   "kiwix_folder": "wikipedia",
+   "file": {
+    "name": "wikipedia_as_all_nopic_2026-10.zim",
+    "url": "https://mirror.download.kiwix.org/zim/wikipedia/wikipedia_as_all_nopic_2026-10.zim",
+    "size": 222848420,
+    "sha256": "4254e3710dd30a7f7b378b008d18e28d0d4f77918ab2208efcae097f43d30baa"
+   }
+  }
+ ]
+}

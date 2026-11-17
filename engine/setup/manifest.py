@@ -13,7 +13,7 @@ REMOTE = 'https://downloads.lastbook.org/manifest-v1.json'
 SHA = re.compile(r'^[0-9a-f]{64}$')
 LIBRARY_HOSTS = frozenset({'downloads.lastbook.org'})   # packs and state maps come from Lastbook's own download site only
 MODEL_HOSTS = frozenset({'huggingface.co'})             # the model from Hugging Face only (it redirects to its own CDN hosts)
-EXTRA_HOSTS = frozenset()                               # a build that publishes its pinned lists elsewhere names those hosts here
+EXTRA_HOSTS = frozenset({'mirror.download.kiwix.org', 'github.com'})   # this fork: Kiwix's mirror, and its own GitHub Releases
 PINNED_HOSTS = LIBRARY_HOSTS | EXTRA_HOSTS              # for content/encyclopedias.json and content/india-maps.json
 ZIM_NAME = re.compile(r'^[a-z0-9_-]{1,100}\.zim$')
 
