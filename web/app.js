@@ -915,7 +915,7 @@ async function encyclopedias(q) {
   if (!zims.length) { main.innerHTML = `<h1>Encyclopedias</h1><p class="lead">This download has no encyclopedias.</p>`; return }
   main.innerHTML = `<h1>Encyclopedias</h1><p class="lead">${zims.length === 1 ? 'One complete encyclopedia' : zims.length + ' complete encyclopedias'}. Community-written: good for background — use the guides’ manuals for safety-critical steps.</p>
   <div style="margin:16px 0">${searchBox('zq', q, 'e.g. tetanus, solar panel, sourdough')}</div><div id="zres"></div>
-  ${secHead('Open one')}<div class="cards2">${zims.map(z => `<a class="card" href="#/wiki/${z[0]}/?from=${encodeURIComponent('#/encyclopedias')}"><span class="ico">${ico(z[3])}</span><b>${esc(z[1])}</b><small>${esc(z[2])}</small></a>`).join('')}</div>`;
+  ${secHead('Open one')}<div class="cards2">${zims.map(z => `<a class="card" href="#/wiki/${esc(encodeURIComponent(z[0]))}/?from=${encodeURIComponent('#/encyclopedias')}"><span class="ico">${ico(z[3])}</span><b>${esc(z[1])}</b><small>${esc(z[2])}</small></a>`).join('')}</div>`;
   $('#zqF').addEventListener('submit', e => { e.preventDefault(); location.hash = '#/encyclopedias?q=' + encodeURIComponent($('#zq').value.trim()) });
   if (q) zimResults(q, $('#zres'), 40);
 }
@@ -1032,7 +1032,7 @@ async function library() {
   </div>
   ${secHead('Learn a skill', 'Step-by-step routes that start simple')}
   <div class="needs">${learnTopics().map(t => `<a class="need" href="#/t/${t.id}" ${tcStyle(t.id)}><span class="ico">${ico(t.id)}</span><b>${esc(SHORT[t.id] || t.title)}</b><small>${esc(t.short || '')} · ${(t.route || []).length} steps</small></a>`).join('')}</div>
-  ${zims.length ? secHead('Encyclopedias', 'Complete offline copies', '<a href="#/encyclopedias">Search them</a>') + `<div class="cards2">${zims.map(z => `<a class="card" href="#/wiki/${z[0]}/?from=${encodeURIComponent('#/library')}"><span class="ico">${ico(z[3])}</span><b>${esc(z[1])}</b><small>${esc(z[2])}</small></a>`).join('')}</div>` : ''}
+  ${zims.length ? secHead('Encyclopedias', 'Complete offline copies', '<a href="#/encyclopedias">Search them</a>') + `<div class="cards2">${zims.map(z => `<a class="card" href="#/wiki/${esc(encodeURIComponent(z[0]))}/?from=${encodeURIComponent('#/library')}"><span class="ico">${ico(z[3])}</span><b>${esc(z[1])}</b><small>${esc(z[2])}</small></a>`).join('')}</div>` : ''}
   ${secHead('Browse by subject', 'Every manual, saved web page and video')}<div id="shelves"><p class="loading">Loading…</p></div>
   <p style="margin-top:20px"><a href="#/about">About this library and its sources</a>${IN_WINDOW ? ' · <a href="/ui/setup.html#manage">Library and local AI</a>' : ''}</p>`;
   try {
