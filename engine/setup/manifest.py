@@ -14,7 +14,7 @@ SHA = re.compile(r'^[0-9a-f]{64}$')
 LIBRARY_HOSTS = frozenset({'downloads.lastbook.org'})   # packs and state maps come from Lastbook's own download site only
 MODEL_HOSTS = frozenset({'huggingface.co'})             # the model from Hugging Face only (it redirects to its own CDN hosts)
 EXTRA_HOSTS = frozenset()                               # a build that publishes its pinned lists elsewhere names those hosts here
-PINNED_HOSTS = LIBRARY_HOSTS | EXTRA_HOSTS              # for content/encyclopedias.json
+PINNED_HOSTS = LIBRARY_HOSTS | EXTRA_HOSTS              # for content/encyclopedias.json and content/india-maps.json
 ZIM_NAME = re.compile(r'^[a-z0-9_-]{1,100}\.zim$')
 
 
@@ -70,23 +70,10 @@ def validate(m, allowed=None):
     for key in ('maps', 'address_indexes'):
         entries = []
         for x in m.get(key) or []:
-            if not isinstance(x, dict) or not isinstance(x.get('id'), str) or not NAME.match(x['id']):
+            e = map_entry(x, LIBRARY_HOSTS, allowed)
+            if not e or (key == 'address_indexes' and not re.fullmatch(r'[A-Z]{2}', x['id'])):
                 return None
-            if key == 'address_indexes' and not re.fullmatch(r'[A-Z]{2}', x['id']):
-                return None
-            files = []
-            for f in x.get('files') or []:
-                if not (isinstance(f, dict) and isinstance(f.get('name'), str) and NAME.match(f['name']) and _int(f.get('size'))
-                        and isinstance(f.get('sha256'), str) and SHA.match(f['sha256']) and _from(f.get('url'), LIBRARY_HOSTS, allowed)):
-                    return None
-                files.append({'name': f['name'], 'url': f['url'], 'size': f['size'], 'sha256': f['sha256'], 'kind': f.get('kind') or 'zip'})
-            available = bool(x.get('available')) and bool(files) and all(f['size'] for f in files)
-            if available and not _int(x.get('installed_bytes')):
-                return None
-            entries.append({'id': x['id'], 'title': str(x.get('title') or x['id']), 'kind': str(x.get('kind') or 'state'),
-                         'includes': str(x.get('includes') or ''),
-                         'installed_bytes': x.get('installed_bytes') if _int(x.get('installed_bytes')) else None,
-                         'download_bytes': sum(f['size'] for f in files), 'available': available, 'files': files})
+            entries.append(e)
         collections[key] = entries
     for x in m.get('models') or []:
         if not (isinstance(x, dict) and isinstance(x.get('id'), str) and NAME.match(x['id']) and isinstance(x.get('file'), str)
@@ -98,11 +85,49 @@ def validate(m, allowed=None):
     return {'version': 1, 'published': str(m.get('published') or ''), 'packs': packs, 'models': models, **collections}
 
 
-def encyclopedias_path():
-    """content/encyclopedias.json, as packaged beside web/ (frozen) or in the source tree."""
+def map_entry(x, hosts, allowed=None):
+    """A state map or address index, cleaned to the fields setup uses, or None if anything in it is wrong."""
+    if not isinstance(x, dict) or not isinstance(x.get('id'), str) or not NAME.match(x['id']):
+        return None
+    files = []
+    for f in x.get('files') or []:
+        if not (isinstance(f, dict) and isinstance(f.get('name'), str) and NAME.match(f['name']) and _int(f.get('size'))
+                and isinstance(f.get('sha256'), str) and SHA.match(f['sha256']) and _from(f.get('url'), hosts, allowed)):
+            return None
+        files.append({'name': f['name'], 'url': f['url'], 'size': f['size'], 'sha256': f['sha256'], 'kind': f.get('kind') or 'zip'})
+    available = bool(x.get('available')) and bool(files) and all(f['size'] for f in files)
+    if available and not _int(x.get('installed_bytes')):
+        return None
+    return {'id': x['id'], 'title': str(x.get('title') or x['id']), 'kind': str(x.get('kind') or 'state'),
+            'country': str(x.get('country') or 'US'), 'includes': str(x.get('includes') or ''),
+            'installed_bytes': x.get('installed_bytes') if _int(x.get('installed_bytes')) else None,
+            'download_bytes': sum(f['size'] for f in files), 'available': available, 'files': files}
+
+
+def content_path(name):
+    """A file in content/, as packaged beside web/ (frozen) or in the source tree."""
     if getattr(sys, 'frozen', False):
-        return Path(getattr(sys, '_MEIPASS', Path(sys.executable).parent)) / 'content' / 'encyclopedias.json'
-    return Path(__file__).resolve().parents[2] / 'content' / 'encyclopedias.json'
+        return Path(getattr(sys, '_MEIPASS', Path(sys.executable).parent)) / 'content' / name
+    return Path(__file__).resolve().parents[2] / 'content' / name
+
+
+def encyclopedias_path():
+    return content_path('encyclopedias.json')
+
+
+def load_india_maps(path=None, allowed=None):
+    """Indian state maps (content/india-maps.json, written by tools/build_india_maps.py pins). An entry that is not exactly
+    right, or whose id is not an Indian one (IN-..), is left out; a missing file offers none."""
+    try:
+        raw = json.loads(Path(path or content_path('india-maps.json')).read_text(encoding='utf-8'))['maps']
+    except (OSError, ValueError, KeyError, TypeError):
+        return []
+    out = []
+    for x in raw if isinstance(raw, list) else []:
+        e = map_entry(x, PINNED_HOSTS, allowed)
+        if e and re.fullmatch(r'IN-[A-Z]{2}', e['id']) and e['id'] not in {o['id'] for o in out}:
+            out.append({**e, 'country': 'IN'})
+    return out
 
 
 def load_encyclopedias(path=None, allowed=None):
@@ -158,8 +183,11 @@ def merge(bundled, fetched):
 class Manifest:
     """The bundled manifest at once; a fetched one replaces it when it arrives and is newer or the same date."""
 
-    def __init__(self, bundled=None, remote=REMOTE, allowed=None, context=None, encyclopedias=None):
+    def __init__(self, bundled=None, remote=REMOTE, allowed=None, context=None, encyclopedias=None, india_maps=None):
         self.current = bundled or load_bundled()
+        india = load_india_maps(allowed=allowed) if india_maps is None else india_maps
+        have = {x['id'] for x in self.current.get('maps', [])}
+        self.current['maps'] = self.current.get('maps', []) + [x for x in india if x['id'] not in have]   # pinned: merge() keeps them
         self.encyclopedias = load_encyclopedias(allowed=allowed) if encyclopedias is None else encyclopedias
         self.source = 'bundled'
         self.remote, self.allowed, self.context = remote, allowed, context

@@ -110,6 +110,29 @@ issue before any code.
 [REGIONS-TH.md](REGIONS-TH.md) does the same for Thailand's provinces and Bangkok.
 [REGIONS-DE.md](REGIONS-DE.md) does the same for Germany's 16 states.
 
+## India
+
+`tools/build_india_maps.py` makes one detailed map per Indian state and union territory, with OpenStreetMap as its only map
+source, so no federal list needs replacing. Each answer to the questions above:
+
+| Question | Answer for India |
+|---|---|
+| Source | Geofabrik's six India zone extracts (`<zone>-latest-free.gpkg.zip`, ODbL 1.0), converted by `tools/build_map.py` |
+| What a "state" is | Each of the 28 states and 8 union territories, by ISO 3166-2:IN code (`IN-MH`), which cannot collide with a US code |
+| Its box | Natural Earth admin-1 (public domain) outline's bounding box, plus the same 0.15° as US states. Only the box is used; no boundary is drawn or shipped |
+| Places | A `places.sqlite` of the state's named cities, towns, villages, suburbs and localities from OpenStreetMap |
+| Addresses | None: OpenStreetMap's Indian address data is too thin for street search. People search by place name instead |
+| Not included | Terrain, buildings beyond OpenStreetMap's own, crops and water inventories: their US sources have no Indian pipeline here yet |
+
+A set holds `national.sqlite` (every feature and help point in the box, features that cross a zone border kept once), an
+empty `map.sqlite`, `places.sqlite`, `map-set.json` and the two status files. Its `meta` table names the region, which
+`server.py` uses to word the map's data panel. Setup installs it like a US state map. In the state list it sits under
+"India" (manifest map entries carry `country`, default `US`).
+
+Publishing: build with `zones`, then `states`; upload the zips (the bucket, as for US states); then
+`pins https://downloads.lastbook.org/maps/` writes `content/india-maps.json`, which setup reads beside the manifest. Its
+addresses must be on `manifest.PINNED_HOSTS`.
+
 ## Checking a map change
 
 - A change to a layer in `web/map.js` is a change you can see: include screenshots in light and dark mode.

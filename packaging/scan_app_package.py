@@ -257,7 +257,7 @@ def main():
     if scan.setup_hosts is None:
         scan.fails.append('engine.setup.download was not found in the archive, so its hosts were not checked')
     setup_urls = []
-    for mf in (root / '_internal' / 'setup' / 'manifest-v1.json', root / '_internal' / 'content' / 'encyclopedias.json'):
+    for mf in [root / '_internal' / 'setup' / 'manifest-v1.json'] + [root / '_internal' / 'content' / n for n in ('encyclopedias.json', 'india-maps.json')]:
         if not mf.is_file():
             continue
         def urls(v):

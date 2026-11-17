@@ -71,7 +71,7 @@ def main():
     # What setup offers beyond the manifest ships as pinned: every entry must pass the check setup itself makes.
     sys.path.insert(0, str(ROOT))
     from engine.setup import manifest
-    for name, key, load in (('encyclopedias.json', 'encyclopedias', manifest.load_encyclopedias),):
+    for name, key, load in (('encyclopedias.json', 'encyclopedias', manifest.load_encyclopedias), ('india-maps.json', 'maps', manifest.load_india_maps)):
         src = ROOT / 'content' / name
         if not src.exists():
             continue

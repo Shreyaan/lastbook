@@ -96,13 +96,15 @@
   const PACK_MAP = { medium: 'CA', all: 'us' };   // what the packs carry today; a manifest packs[].map, when there, wins
   const packMap = id => { const p = packById(id) || {}; return 'map' in p ? p.map || null : PACK_MAP[id] || null };
   const mapNow = () => { const c = cur() || {}; return choice.pack && choice.pack !== c.pack ? packMap(choice.pack) : (c.map && c.map !== 'base' ? c.map : packMap(c.pack)) };
+  const COUNTRY = { US: 'United States', IN: 'India' };
   const NO_MAP = 'none';   // outside the US: no state map; the world base map the packs carry stays
   const selectedState = () => choice.map === NO_MAP ? '' : choice.map || (mapNow() !== 'us' && mapNow()) || ((cur() || {}).address_indexes || [])[0] || '';
   const addresses = () => (S.manifest && S.manifest.address_indexes) || [];
   const addressById = id => addresses().find(a => a.id === id);
   const addressAdds = () => { const a = addressById(selectedState()); return a && a.available !== false && !((cur() || {}).address_indexes || []).includes(a.id) ? a : null };
   const mapMissing = () => !selectedState() && choice.map !== NO_MAP;
-  const mapAdds = () => choice.map && choice.map !== NO_MAP && choice.map !== mapNow() && mapNow() !== 'us' ? mapById(choice.map) : null;
+  const inUsMap = id => mapNow() === 'us' && ((mapById(id) || {}).country || 'US') === 'US';   // All's map holds every US state, and no other country's
+  const mapAdds = () => choice.map && choice.map !== NO_MAP && choice.map !== mapNow() && !inUsMap(choice.map) ? mapById(choice.map) : null;
 
   /* encyclopedias picked one by one (content/encyclopedias.json): what the library has, or the chosen pack brings, is not fetched again */
   const encs = () => (S.manifest && S.manifest.encyclopedias) || [];
@@ -290,26 +292,30 @@
     if (!box) return;
     main.querySelectorAll('[data-pack-summary]').forEach(el => { el.textContent = packSummary(packById(el.dataset.packSummary)) });
     const selected = selectedState();
-    const opts = maps().map(m => {
-      const a = addressById(m.id), included = now === 'us' || m.id === now;
+    const opt = m => {
+      const a = addressById(m.id), included = inUsMap(m.id) || m.id === now;
       const addressIncluded = ((cur() || {}).address_indexes || []).includes(m.id);
       const off = !included && m.available === false;
       const bytes = (included ? 0 : packDl(m)) + (a && a.available !== false && !addressIncluded ? packDl(a) : 0);
       const details = off ? 'coming later' : bytes ? size(bytes) + ' download' : 'included';
       return `<option value="${esc(m.id)}"${selected === m.id ? ' selected' : ''}${off ? ' disabled' : ''}>${esc(m.title)} — ${details}</option>`;
-    }).join('');
+    };
+    const countries = [...new Set(maps().map(m => m.country || 'US'))];   // one list per country once there is more than one
+    const opts = countries.length < 2 ? maps().map(opt).join('')
+      : countries.map(c => `<optgroup label="${esc(COUNTRY[c] || c)}">${maps().filter(m => (m.country || 'US') === c).map(opt).join('')}</optgroup>`).join('');
     const sel = mapById(selected), a = addressAdds();
-    const mapIncluded = now === 'us' || selected === now;
+    const mapIncluded = inUsMap(selected) || selected === now;
     const bytes = (sel && !mapIncluded ? packDl(sel) : 0) + (a ? packDl(a) : 0);
     const disk = (sel && !mapIncluded ? sel.installed_bytes || 0 : 0) + (a ? a.installed_bytes || 0 : 0);
     const unavailable = selected && addresses().length && (!addressById(selected) || addressById(selected).available === false);
     let hint = choice.map === NO_MAP ? 'No state map. The world map the library carries is still there.' : !sel ? 'Select your state to continue.' : bytes ? `${size(bytes)} download · ${size(disk)} on disk${mapIncluded && a ? '. Your map is already included; only the address index downloads.' : ''}` : 'Your state map and available address index are already included.';
-    if (unavailable) hint = (bytes ? `${size(bytes)} download · ${size(disk)} on disk.` : 'Your state map is already included.') + ' Street-address search is not available for this state yet.';
+    if (unavailable) hint = (bytes ? `${size(bytes)} download · ${size(disk)} on disk.` : 'Your state map is already included.') +
+      (sel && sel.country === 'IN' ? ' Find places by the name of a town, village or locality.' : ' Street-address search is not available for this state yet.');
     box.innerHTML = `<h2>${ico('map')}Your local map</h2>
       <p class="s-mapnote">Local streets, buildings, water and places to get help. Available offline.</p>
       ${now === 'us' ? '<p class="s-mapnote">All includes every state map. Choose your state for offline street-address search.</p>' : ''}
       <label class="s-maplabel" for="mapSel">Choose your state</label>
-      <select id="mapSel" class="s-select" required aria-describedby="mapHint"><option value="" disabled${selected || choice.map === NO_MAP ? '' : ' selected'}>Select a state</option>${opts}<option value="${NO_MAP}"${choice.map === NO_MAP ? ' selected' : ''}>I’m not in the US: skip the state map</option></select>
+      <select id="mapSel" class="s-select" required aria-describedby="mapHint"><option value="" disabled${selected || choice.map === NO_MAP ? '' : ' selected'}>Select a state</option>${opts}<option value="${NO_MAP}"${choice.map === NO_MAP ? ' selected' : ''}>None of these: skip the state map</option></select>
       <p class="s-hint" id="mapHint">${hint}</p>`;
     $('#mapSel').onchange = e => { choice.map = e.target.value; shortfall = null; mapSection(); summary(); $('#mapSel').focus() };
   }

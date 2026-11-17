@@ -1548,12 +1548,13 @@ def map_contents():
     for path in (LIB / 'geography/resources/atlas.sqlite', WATERDB, CROPDB):
         kinds |= set(_distinct(path, 'SELECT DISTINCT kind FROM resource'))
     contours = any(r for r in _distinct(TERRAINDB, 'SELECT 1 FROM tile WHERE z>=11 LIMIT 1'))
+    region = next(iter(_distinct(HERE / 'derived/geo/national.sqlite', "SELECT value FROM meta WHERE key='region'")), None)   # a map outside the US says where
     bounds = None
     if boxes:
         bounds = [min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes), max(b[3] for b in boxes)]
         if bounds[2] - bounds[0] > 90:  # a map of everything: crossing the date line would show the whole world
             bounds = None
-    return {'layers': sorted(kinds), 'bounds': bounds, 'detail': bool(boxes), 'contours': contours}
+    return {'layers': sorted(kinds), 'bounds': bounds, 'detail': bool(boxes), 'contours': contours, 'region': region}
 
 
 def map_info():
@@ -1640,7 +1641,12 @@ def map_info():
 
 def pack_datasets(have):
     """The panel beside a pack's map says only what this pack's map files hold."""
-    area = 'the area this map details' if have['bounds'] else 'the whole US'
+    area = have.get('region') or ('the area this map details' if have['bounds'] else 'the whole US')
+    if have.get('region'):     # cut from OpenStreetMap alone: no US base, and its places come from OpenStreetMap too
+        out = [{'label': f'Streets, towns, villages and help points for {area} (OpenStreetMap)', 'status': 'Street detail stops at the edge of this area.'}]
+        if PLACEDB.exists():
+            out.append({'label': 'Place names (OpenStreetMap)', 'status': 'Used by "Find a town or place"'})
+        return out
     out = [{'label': 'Main roads, towns and water for the whole US (OpenStreetMap, USGS)', 'status': 'Shown at every zoom level'}]
     if have['detail']:
         out.append({'label': f'Streets, places and help points (OpenStreetMap) for {area}', 'status': 'Street detail stops at the edge of this area.' if have['bounds'] else 'Shown when you zoom in'})

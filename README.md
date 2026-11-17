@@ -50,7 +50,8 @@ other Linux distributions have not been validated for this release.
   keyword search everywhere and meaning-based search on Windows.
 - **Offline map.** A base map of the world and the US, plus a detailed map for the state selected during setup: local streets,
   buildings, terrain, crops, and water, help and resource points. Addresses in that state can be found offline. The person
-  picks the state; Lastbook never detects location.
+  picks the state; Lastbook never detects location. Indian states and union territories can have detailed maps too
+  (streets, towns, villages and help points from OpenStreetMap; see `docs/MAPS.md`, "India").
 - **Optional local AI.** Ask questions in plain words and get answers that cite library pages, from a model that runs on
   the computer itself (see "The local AI" below). Without it, Chat still finds the right pages.
 - **One-download setup.** On first run, setup defaults to Small and selects local AI when the computer can run it.
