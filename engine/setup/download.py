@@ -29,6 +29,9 @@ ALLOWED_HOSTS = frozenset({
     'downloads.lastbook.org',
     'huggingface.co',
     'cas-bridge.xethub.hf.co',
+    # This fork only: what it publishes outside downloads.lastbook.org (engine/setup/manifest.py EXTRA_HOSTS)
+    'mirror.download.kiwix.org',                 # encyclopedias, from Kiwix's own mirror
+    'github.com', 'release-assets.githubusercontent.com', 'objects.githubusercontent.com',   # Indian state maps on GitHub Releases
 })
 ALLOWED_SUFFIXES = ('.hf.co',)      # Hugging Face's download hosts (cas-bridge.xethub.hf.co and its siblings)
 MAX_REDIRECTS = 5

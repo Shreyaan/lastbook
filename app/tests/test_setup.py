@@ -390,7 +390,7 @@ class Downloads(Base):
 
     def test_roots_only(self):
         ctx = download.tls_context()
-        self.assertEqual(ctx.cert_store_stats()['x509_ca'], 11)      # roots.pem and nothing from the system
+        self.assertEqual(ctx.cert_store_stats()['x509_ca'], 15)      # roots.pem (packaging/setup_roots.py ROOTS) and nothing from the system
         self.assertEqual(ctx.minimum_version, ssl.TLSVersion.TLSv1_2)
         self.assertTrue(ctx.check_hostname)
         text = download.roots_path().read_text()

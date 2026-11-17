@@ -6,6 +6,11 @@ Chat answers questions using the library and links to its sources.
 
 Website: <https://lastbook.org>. Contact: hello@lastbook.org.
 
+> **This fork** publishes what upstream's download site does not carry yet: encyclopedias picked one by one come from Kiwix's
+> own mirror (`mirror.download.kiwix.org`) and Indian state maps from this repository's GitHub Releases. Those hosts, and the
+> Sectigo/USERTrust roots `github.com` needs, are the only difference from upstream's downloader (`engine/setup/download.py`,
+> `manifest.EXTRA_HOSTS`, `packaging/setup_roots.py`). Every file is still pinned by SHA-256.
+
 > Lastbook’s original code and documentation are licensed under the [MIT License](LICENSE).
 > Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
 
