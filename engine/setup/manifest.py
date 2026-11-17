@@ -13,6 +13,9 @@ REMOTE = 'https://downloads.lastbook.org/manifest-v1.json'
 SHA = re.compile(r'^[0-9a-f]{64}$')
 LIBRARY_HOSTS = frozenset({'downloads.lastbook.org'})   # packs and state maps come from Lastbook's own download site only
 MODEL_HOSTS = frozenset({'huggingface.co'})             # the model from Hugging Face only (it redirects to its own CDN hosts)
+EXTRA_HOSTS = frozenset()                               # a build that publishes its pinned lists elsewhere names those hosts here
+PINNED_HOSTS = LIBRARY_HOSTS | EXTRA_HOSTS              # for content/encyclopedias.json
+ZIM_NAME = re.compile(r'^[a-z0-9_-]{1,100}\.zim$')
 
 
 def _from(url, hosts, allowed):
@@ -95,6 +98,35 @@ def validate(m, allowed=None):
     return {'version': 1, 'published': str(m.get('published') or ''), 'packs': packs, 'models': models, **collections}
 
 
+def encyclopedias_path():
+    """content/encyclopedias.json, as packaged beside web/ (frozen) or in the source tree."""
+    if getattr(sys, 'frozen', False):
+        return Path(getattr(sys, '_MEIPASS', Path(sys.executable).parent)) / 'content' / 'encyclopedias.json'
+    return Path(__file__).resolve().parents[2] / 'content' / 'encyclopedias.json'
+
+
+def load_encyclopedias(path=None, allowed=None):
+    """The encyclopedias setup offers one by one, each pinned to one .zim file (tools/kiwix_pins.py). An entry that is not
+    exactly right is left out, not trusted; a missing file offers none."""
+    try:
+        raw = json.loads(Path(path or encyclopedias_path()).read_text(encoding='utf-8'))['encyclopedias']
+    except (OSError, ValueError, KeyError, TypeError):
+        return []
+    out, seen = [], set()
+    for e in raw if isinstance(raw, list) else []:
+        f = e.get('file') if isinstance(e, dict) else None
+        if not (isinstance(f, dict) and isinstance(e.get('id'), str) and NAME.match(e['id']) and e['id'] not in seen
+                and isinstance(f.get('name'), str) and ZIM_NAME.match(f['name']) and f['name'].startswith(e['id'] + '_')
+                and _int(f.get('size')) and f['size'] > 0 and isinstance(f.get('sha256'), str) and SHA.match(f['sha256'])
+                and _from(f.get('url'), PINNED_HOSTS, allowed)):
+            continue
+        seen.add(e['id'])
+        out.append({'id': e['id'], 'title': str(e.get('title') or e['id']), 'summary': str(e.get('summary') or ''),
+                    'icon': str(e.get('icon') or 'wiki'), 'lang': str(e.get('lang') or ''), 'group': str(e.get('group') or ''),
+                    'file': {'name': f['name'], 'url': f['url'], 'size': f['size'], 'sha256': f['sha256']}})
+    return out
+
+
 def load_bundled(paths=None):
     for p in paths or bundled_paths():
         try:
@@ -126,8 +158,9 @@ def merge(bundled, fetched):
 class Manifest:
     """The bundled manifest at once; a fetched one replaces it when it arrives and is newer or the same date."""
 
-    def __init__(self, bundled=None, remote=REMOTE, allowed=None, context=None):
+    def __init__(self, bundled=None, remote=REMOTE, allowed=None, context=None, encyclopedias=None):
         self.current = bundled or load_bundled()
+        self.encyclopedias = load_encyclopedias(allowed=allowed) if encyclopedias is None else encyclopedias
         self.source = 'bundled'
         self.remote, self.allowed, self.context = remote, allowed, context
         self.fetching = None
@@ -158,6 +191,9 @@ class Manifest:
     def address_index(self, state):
         return next((x for x in self.current.get('address_indexes', []) if x['id'] == state), None)
 
+    def encyclopedia(self, eid):
+        return next((e for e in self.encyclopedias if e['id'] == eid), None)
+
     def model(self, mid=None):
         ms = [m for m in self.current['models'] if m['available']]
         return next((m for m in ms if mid in (None, m['id'])), None)
@@ -168,4 +204,5 @@ class Manifest:
                 'packs': [{**p, 'files': [strip(f) for f in p['files']]} for p in self.current['packs']],
                 'models': [strip(m) for m in self.current['models']],
                 'maps': [{**x, 'files': [strip(f) for f in x['files']]} for x in self.current.get('maps', [])],
-                'address_indexes': [{**x, 'files': [strip(f) for f in x['files']]} for x in self.current.get('address_indexes', [])]}
+                'address_indexes': [{**x, 'files': [strip(f) for f in x['files']]} for x in self.current.get('address_indexes', [])],
+                'encyclopedias': [{**e, 'file': strip(e['file'])} for e in self.encyclopedias]}

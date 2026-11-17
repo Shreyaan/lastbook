@@ -199,6 +199,22 @@ def topics():
     return out
 
 
+@functools.lru_cache(maxsize=1)
+def offered_encyclopedias():
+    """Titles of the encyclopedias setup offers one by one, by id (content/encyclopedias.json), to label the files added."""
+    try:
+        return {e['id']: {k: str(e.get(k) or '') for k in ('title', 'summary', 'icon', 'lang')}
+                for e in json.loads((APP / 'content' / 'encyclopedias.json').read_text(encoding='utf-8'))['encyclopedias']}
+    except (OSError, ValueError, KeyError, TypeError):
+        return {}
+
+
+def zim_info(names):
+    """Title, summary, icon and language for each file that is one of the offered encyclopedias, in any edition."""
+    offered = offered_encyclopedias()
+    return {n: offered[n.rsplit('_', 1)[0]] for n in names if n.rsplit('_', 1)[0] in offered}
+
+
 def zim_names():
     """The encyclopedia files this library really holds. Its folder decides, so one rule covers every size of pack."""
     try:
@@ -2100,7 +2116,7 @@ class Handler(library.Handler):
                 s = json.loads((LIB / 'summary.json').read_text(encoding='utf-8'))
                 sources = (catalog()['by_path'].get(SOURCES_PAGE) or {}).get('id')
                 return self.send_json({**{k: s.get(k) for k in ('resources', 'pdfs', 'pdf_pages', 'web_pages', 'videos', 'collections', 'document_bytes')},
-                                       'zims': zim_names(), 'sources': sources, 'pack': bool(pack_info()),
+                                       'zims': zim_names(), 'zim_info': zim_info(zim_names()), 'sources': sources, 'pack': bool(pack_info()),
                                        'pins': bool(map_contents()['layers']) if pack_info() else True})
             if path.startswith('/api/') and path not in self.LIBRARY_ROUTES:
                 return self.send_json({'error': 'not found'}, 404)

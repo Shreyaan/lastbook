@@ -246,8 +246,34 @@ def stage_switch(pend, new_lib, target, model_file=None, kind=None, model_sha256
     return d
 
 
+ZIM_DIR = Path('library-data') / 'collections'
+ZIM_RECORD = Path('derived') / 'encyclopedias.json'     # the encyclopedias setup added, name -> SHA-256: they belong to the person
+
+
+def added_zims(lib):
+    try:
+        files = json.loads((Path(lib) / ZIM_RECORD).read_text(encoding='utf-8')).get('files')
+    except (OSError, ValueError, AttributeError):
+        return {}
+    if not isinstance(files, dict):
+        return {}
+    return {n: h for n, h in files.items() if isinstance(n, str) and re.fullmatch(r'[a-z0-9_-]{1,100}\.zim', n)}
+
+
+def record_zim(lib, name, sha256):
+    """Notes an added encyclopedia (sha256 None forgets it)."""
+    files = added_zims(lib)
+    if sha256:
+        files[name] = sha256
+    else:
+        files.pop(name, None)
+    (Path(lib) / ZIM_RECORD).parent.mkdir(parents=True, exist_ok=True)
+    _write_json(Path(lib) / ZIM_RECORD, {'files': files})
+
+
 def carry_over(old, new):
-    """What belongs to the person, not the pack, goes with them: the model file, address indexes, and the AI's on/off setting."""
+    """What belongs to the person, not the pack, goes with them: the model file, address indexes, added encyclopedias and the
+    AI's on/off setting."""
     old, new = Path(old), Path(new)
     moved = []
     src = old / 'models'
@@ -267,6 +293,13 @@ def carry_over(old, new):
             if source.is_file() and re.fullmatch(r'[A-Z]{2}\.(sqlite|json)', source.name) and not dest.exists():
                 os.replace(source, dest)
                 moved.append(dest)
+    for name, digest in added_zims(old).items():
+        src, dest = old / ZIM_DIR / name, new / ZIM_DIR / name
+        if src.is_file() and not dest.exists():   # a pack that carries the same file keeps its own
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(src, dest)
+            moved.append(dest)
+            record_zim(new, name, digest)
     state = old / 'derived' / 'llm' / 'state.json'
     if state.is_file() and not (new / 'derived' / 'llm' / 'state.json').exists():
         (new / 'derived' / 'llm').mkdir(parents=True, exist_ok=True)

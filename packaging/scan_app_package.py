@@ -256,9 +256,10 @@ def main():
                 scan.fails.append(f'module missing from the package: {mod}')
     if scan.setup_hosts is None:
         scan.fails.append('engine.setup.download was not found in the archive, so its hosts were not checked')
-    mf = root / '_internal' / 'setup' / 'manifest-v1.json'
     setup_urls = []
-    if mf.is_file():
+    for mf in (root / '_internal' / 'setup' / 'manifest-v1.json', root / '_internal' / 'content' / 'encyclopedias.json'):
+        if not mf.is_file():
+            continue
         def urls(v):
             if isinstance(v, dict):
                 for x in v.values():

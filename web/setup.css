@@ -154,3 +154,13 @@ html.plat-mac.in-app .s-top{padding-top:30px}   /* below the traffic lights of a
 .s-maplabel{display:block;margin:16px 0 8px;font-size:17px;font-weight:650}
 .s-map-panel .s-select{max-width:none;min-height:56px;font-size:18px}
 .s-map-panel .s-hint{margin-top:10px}
+.s-zgroup{margin-top:10px}
+.s-zgroup>summary{cursor:pointer;font:650 16px/1.3 var(--display);padding:6px 0;color:var(--ink)}
+.s-zims{display:grid;gap:8px;margin-top:6px}
+@media (min-width:760px){.s-zims{grid-template-columns:1fr 1fr}}
+.s-zim{padding:11px 14px}
+.s-zim .s-opt-h b{font-size:16px}
+.s-zim small{font-size:14px}
+.s-zim .s-opt-in{grid-template-columns:1fr}
+.s-zim .s-opt-in>.s-sizes{grid-column:auto;grid-row:auto;flex-direction:row;align-items:center;align-self:auto;text-align:left;margin-top:2px}
+.s-zrow{padding-left:52px}

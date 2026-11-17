@@ -69,7 +69,7 @@
   /* ------------------------------------------------------------ state */
   let S = null;           // GET state
   let view = 'choose';
-  let choice = { pack: null, ai: false, map: null };   // map: the selected state code
+  let choice = { pack: null, ai: false, map: null, zims: new Set() };   // map: the selected state code, or 'none'; zims: encyclopedia ids
   let folder = '';
   let shortfall = null;   // the answer to a start that had no room: {need_bytes, free_bytes}
   let pollT = 0;
@@ -96,12 +96,20 @@
   const PACK_MAP = { medium: 'CA', all: 'us' };   // what the packs carry today; a manifest packs[].map, when there, wins
   const packMap = id => { const p = packById(id) || {}; return 'map' in p ? p.map || null : PACK_MAP[id] || null };
   const mapNow = () => { const c = cur() || {}; return choice.pack && choice.pack !== c.pack ? packMap(choice.pack) : (c.map && c.map !== 'base' ? c.map : packMap(c.pack)) };
-  const selectedState = () => choice.map || (mapNow() !== 'us' && mapNow()) || ((cur() || {}).address_indexes || [])[0] || '';
+  const NO_MAP = 'none';   // outside the US: no state map; the world base map the packs carry stays
+  const selectedState = () => choice.map === NO_MAP ? '' : choice.map || (mapNow() !== 'us' && mapNow()) || ((cur() || {}).address_indexes || [])[0] || '';
   const addresses = () => (S.manifest && S.manifest.address_indexes) || [];
   const addressById = id => addresses().find(a => a.id === id);
   const addressAdds = () => { const a = addressById(selectedState()); return a && a.available !== false && !((cur() || {}).address_indexes || []).includes(a.id) ? a : null };
-  const mapMissing = () => !selectedState();
-  const mapAdds = () => choice.map && choice.map !== mapNow() && mapNow() !== 'us' ? mapById(choice.map) : null;
+  const mapMissing = () => !selectedState() && choice.map !== NO_MAP;
+  const mapAdds = () => choice.map && choice.map !== NO_MAP && choice.map !== mapNow() && mapNow() !== 'us' ? mapById(choice.map) : null;
+
+  /* encyclopedias picked one by one (content/encyclopedias.json): what the library has, or the chosen pack brings, is not fetched again */
+  const encs = () => (S.manifest && S.manifest.encyclopedias) || [];
+  const encById = id => encs().find(e => e.id === id);
+  const zimHere = id => ((cur() || {}).encyclopedias || []).includes(id);
+  const zimInPack = id => !!choice.pack && packNeedsInstall(packById(choice.pack)) && ((S.pack_zims || {})[choice.pack] || []).includes(id);
+  const zimAdds = () => [...choice.zims].filter(id => !zimHere(id) && !zimInPack(id)).map(encById).filter(Boolean);
   function packSummary(p) {
     const text = p.summary || '';
     if (p.id !== 'medium' || !maps().length) return text;
@@ -143,6 +151,7 @@
     if (mp) { const got = foundFor('map', mp.id); if (!got) dl += packDl(mp); need += (got ? 0 : packDl(mp)) + (mp.installed_bytes || 0) }
     const a = addressAdds();
     if (a) { dl += packDl(a); need += packDl(a) + (a.installed_bytes || 0) }
+    for (const e of zimAdds()) { dl += e.file.size; need += e.file.size }   // moved into place once checked: counted once
     if (need) need += 2 * 1000 ** 3;
     return { dl, need };
   }
@@ -234,6 +243,8 @@
       <section id="mapBox" class="s-map-panel" aria-label="Your local map"></section>
       <h2 id="packH">Library</h2>
       <div class="s-opts" role="radiogroup" aria-labelledby="packH">${packCards}</div>
+      ${zimSection()}
+      ${zimSection()}
       ${ai ? `<h2>Local AI</h2>${ai}` : ''}
       <section class="s-sum" id="sum" aria-live="polite"></section>
       <div class="s-go">
@@ -242,7 +253,8 @@
         <button class="s-link" id="haveFile">Choose a library zip or AI model file</button>
       </div>
       <p class="s-note" id="haveNote" hidden></p>`;
-    main.querySelectorAll('input[name=pack]').forEach(r => r.onchange = () => { choice.pack = r.value; shortfall = null; mapSection(); summary() });
+    main.querySelectorAll('input[name=pack]').forEach(r => r.onchange = () => { choice.pack = r.value; shortfall = null; mapSection(); zimMarks(); summary() });
+    main.querySelectorAll('input[data-zim]').forEach(b => b.onchange = () => { b.checked ? choice.zims.add(b.dataset.zim) : choice.zims.delete(b.dataset.zim); shortfall = null; summary() });
     const box = $('#aiBox'); if (box && !box.disabled) box.onchange = () => { choice.ai = box.checked; shortfall = null; summary() };
     main.querySelectorAll('[data-use]').forEach(b => b.onclick = () => useFile((S.found || [])[+b.dataset.use].path, b));
     $('#start').onclick = start;
@@ -250,7 +262,27 @@
     if ($('#haveLib')) $('#haveLib').onclick = () => haveLibrary(false);
     $('#haveFile').onclick = () => haveLibrary(true);
     mapSection();
+    zimMarks();
     summary();
+  }
+  function zimSection() {
+    if (!encs().length) return '';
+    const groups = [...new Set(encs().map(e => e.group || 'More'))];
+    return `<h2 id="zimH">Encyclopedias <span class="s-opt-note">optional · pick only what you want</span></h2>
+      <p class="s-mapnote">Each one downloads on its own from Kiwix and is checked against its published checksum before it is used.</p>
+      ${groups.map(g => `<details class="s-zgroup" open><summary>${esc(g)} <span class="s-opt-note">${encs().filter(e => (e.group || 'More') === g).length}</span></summary>
+        <div class="s-zims" role="group" aria-label="${esc(g)}">${encs().filter(e => (e.group || 'More') === g).map(e => `<label class="s-opt s-zim" data-zim-row="${esc(e.id)}">
+          <input type="checkbox" data-zim="${esc(e.id)}"${choice.zims.has(e.id) ? ' checked' : ''}>
+          <span class="s-opt-in"><span class="s-opt-h"><b>${esc(e.title)}</b><span class="s-zbadge"></span></span>
+          <small>${esc(e.summary)}</small><span class="s-sizes"><span>${size(e.file.size)}</span></span></span></label>`).join('')}</div></details>`).join('')}`;
+  }
+  function zimMarks() {   // what is here already, or comes with the chosen pack: shown ticked and fixed
+    main.querySelectorAll('[data-zim-row]').forEach(row => {
+      const id = row.dataset.zimRow, box = row.querySelector('input'), here = zimHere(id), inPack = zimInPack(id);
+      box.disabled = here || inPack;
+      box.checked = here || inPack || choice.zims.has(id);
+      row.querySelector('.s-zbadge').outerHTML = `<span class="s-zbadge">${here ? '<span class="s-badge here">Installed</span>' : inPack ? '<span class="s-badge here">In this library</span>' : ''}</span>`;
+    });
   }
   /* Map geometry and address indexes are separate downloads, chosen by state. */
   function mapSection() {
@@ -271,13 +303,13 @@
     const bytes = (sel && !mapIncluded ? packDl(sel) : 0) + (a ? packDl(a) : 0);
     const disk = (sel && !mapIncluded ? sel.installed_bytes || 0 : 0) + (a ? a.installed_bytes || 0 : 0);
     const unavailable = selected && addresses().length && (!addressById(selected) || addressById(selected).available === false);
-    let hint = !sel ? 'Select your state to continue.' : bytes ? `${size(bytes)} download · ${size(disk)} on disk${mapIncluded && a ? '. Your map is already included; only the address index downloads.' : ''}` : 'Your state map and available address index are already included.';
+    let hint = choice.map === NO_MAP ? 'No state map. The world map the library carries is still there.' : !sel ? 'Select your state to continue.' : bytes ? `${size(bytes)} download · ${size(disk)} on disk${mapIncluded && a ? '. Your map is already included; only the address index downloads.' : ''}` : 'Your state map and available address index are already included.';
     if (unavailable) hint = (bytes ? `${size(bytes)} download · ${size(disk)} on disk.` : 'Your state map is already included.') + ' Street-address search is not available for this state yet.';
     box.innerHTML = `<h2>${ico('map')}Your local map</h2>
       <p class="s-mapnote">Local streets, buildings, water and places to get help. Available offline.</p>
       ${now === 'us' ? '<p class="s-mapnote">All includes every state map. Choose your state for offline street-address search.</p>' : ''}
       <label class="s-maplabel" for="mapSel">Choose your state</label>
-      <select id="mapSel" class="s-select" required aria-describedby="mapHint"><option value="" disabled${selected ? '' : ' selected'}>Select a state</option>${opts}</select>
+      <select id="mapSel" class="s-select" required aria-describedby="mapHint"><option value="" disabled${selected || choice.map === NO_MAP ? '' : ' selected'}>Select a state</option>${opts}<option value="${NO_MAP}"${choice.map === NO_MAP ? ' selected' : ''}>I’m not in the US: skip the state map</option></select>
       <p class="s-hint" id="mapHint">${hint}</p>`;
     $('#mapSel').onchange = e => { choice.map = e.target.value; shortfall = null; mapSection(); summary(); $('#mapSel').focus() };
   }
@@ -295,7 +327,8 @@
     const b = $('#start');
     b.disabled = !need || !!short || mapMissing();
     const newPack = c && packNeedsInstall(packById(choice.pack)), newAi = c && choice.ai && !c.model, newMap = c && mapAdds(), newAddresses = c && addressAdds();
-    const parts = [newPack && packById(choice.pack).title, newAi && 'the local AI', newMap && `the ${newMap.title} map`, newAddresses && !newMap && 'offline address search'].filter(Boolean);
+    const nz = c ? zimAdds().length : 0;
+    const parts = [newPack && packById(choice.pack).title, newAi && 'the local AI', newMap && `the ${newMap.title} map`, newAddresses && !newMap && 'offline address search', nz && (nz === 1 ? 'one encyclopedia' : `${nz} encyclopedias`)].filter(Boolean);
     b.textContent = mapMissing() ? 'Choose your state to continue' : !c ? 'Download and install' : parts.length ? 'Get ' + parts.join(parts.length > 2 ? ', ' : ' and ').replace(/, ([^,]*)$/, ' and $1') : 'Nothing to add';
     if (newPack && choice.pack === c.pack && !mapMissing()) b.textContent = 'Download and install update';
     const ch = $('#chFolder'); if (ch) ch.onclick = pickFolder;
@@ -342,7 +375,7 @@
   async function start() {
     if (mapMissing()) { $('#mapSel')?.focus(); return }
     const b = $('#start'); b.disabled = true;
-    const r = await call('start', { pack: packNeedsInstall(packById(choice.pack)) ? choice.pack : null, ai: !!choice.ai && aiFits() && !(cur() || {}).model, map: mapAdds() ? choice.map : null, address_id: addressById(selectedState())?.available !== false && addressById(selectedState()) ? selectedState() : null, folder }).catch(e => ({ error: e.message }));
+    const r = await call('start', { pack: packNeedsInstall(packById(choice.pack)) ? choice.pack : null, ai: !!choice.ai && aiFits() && !(cur() || {}).model, map: mapAdds() ? choice.map : null, address_id: addressById(selectedState())?.available !== false && addressById(selectedState()) ? selectedState() : null, zims: zimAdds().map(e => e.id), folder }).catch(e => ({ error: e.message }));
     if (r && r.need_bytes) { shortfall = r; summary(); return }
     if (!r || r.error) { b.disabled = false; const n = $('#haveNote'); n.hidden = false; n.textContent = (r && r.error) || 'Setup could not start.'; return }
     S.job = r; go('job'); poll();
@@ -364,6 +397,9 @@
         ${maps().length ? (() => { const mNow = c.map && c.map !== 'base' ? c.map : packMap(c.pack);
           return `<div class="s-row">${ico('map', 's-ri')}<span><b>${mNow ? 'Detailed map: ' + esc(mapName(mNow)) : 'Detailed map'}</b><small>${mNow ? (mNow === 'us' ? 'Local streets and terrain everywhere' : 'Local streets, buildings and terrain') : 'None yet. Add one for your state.'}</small></span>
           <button class="btn plain" id="mapCh">${(c.address_indexes || []).length ? 'Choose state' : 'Add address search'}</button></div>` })() : ''}
+        ${encs().length ? `<div class="s-row">${ico('book', 's-ri')}<span><b>Encyclopedias</b><small>${(c.encyclopedias || []).length ? (c.encyclopedias || []).map(id => esc((encById(id) || {}).title || id)).join(' · ') : 'None yet'}</small></span>
+          <button class="btn plain" id="zimAdd">Add encyclopedias</button></div>
+          ${(c.encyclopedias_added || []).map(id => encById(id)).filter(Boolean).map(e => `<div class="s-row s-zrow"><span><b>${esc(e.title)}</b><small>Added by you · ${size(e.file.size)}</small></span><button class="btn plain" data-zim-rm="${esc(e.id)}">${ico('trash')}Remove</button></div>`).join('')}` : ''}
       </div>
       ${old ? `<div class="s-row s-old">${ico('folder', 's-ri')}<span><b>The old library is still here</b><small>${esc(home(old.path))}${old.bytes ? ' · ' + size(old.bytes) : ''}</small></span>${confirmOld ? `<span class="s-confirm"><span>Delete it for good?</span><button class="btn danger" id="oldYes">Delete</button><button class="btn plain" id="oldNo">Keep</button></span>` : `<button class="btn plain" id="rmOld">${ico('trash')}Delete it</button>`}</div>` : ''}
       ${computer()}
@@ -373,6 +409,8 @@
     if ($('#upgrade')) $('#upgrade').onclick = () => { choice.pack = bigger[0].id; choice.ai = !!c.model; go('choose') };
     if ($('#mapCh')) $('#mapCh').onclick = () => { choice.pack = c.pack; choice.ai = !!c.model; choice.map = null; go('choose'); const m = $('#mapSel'); if (m) m.focus() };
     if ($('#addAi')) $('#addAi').onclick = () => { choice.pack = c.pack; choice.ai = true; go('choose') };
+    if ($('#zimAdd')) $('#zimAdd').onclick = () => { choice.pack = c.pack; choice.ai = !!c.model; choice.zims = new Set(); go('choose'); $('#zimH')?.scrollIntoView({ block: 'start' }) };
+    main.querySelectorAll('[data-zim-rm]').forEach(b => b.onclick = () => act('remove-encyclopedia', `${(encById(b.dataset.zimRm) || {}).title || 'The encyclopedia'} was removed.`, { id: b.dataset.zimRm }));
     if ($('#rmAi')) $('#rmAi').onclick = () => { confirmRemove = true; manageView(); $('#rmNo').focus() };
     if ($('#rmNo')) $('#rmNo').onclick = () => { confirmRemove = false; manageView(); $('#rmAi').focus() };
     if ($('#rmYes')) $('#rmYes').onclick = () => act('remove-ai', 'The local AI was removed.');   // the engine stops the AI first
@@ -400,6 +438,7 @@
                   model: [['downloading', 'Download'], ['verifying', 'Check'], ['activating', 'Finish']] };
   STEPS.map = [['downloading', 'Download'], ['unpacking', 'Unpack']];   // the engine's map item: waiting, downloading, unpacking, done
   STEPS.addresses = STEPS.map;
+  STEPS.zim = STEPS.model;
   const WORD = { waiting: 'Waiting', downloading: 'Downloading', paused: 'Paused', verifying: 'Checking', unpacking: 'Unpacking', activating: 'Finishing', done: 'Done', failed: 'Stopped' };
   const ACTIVE = new Set(['waiting', 'downloading', 'verifying', 'unpacking', 'activating']);
   let shapeKey = '', lastAct = null;   // lastAct: the button just pressed, so focus lands on what replaced it
@@ -437,7 +476,7 @@
       <ol class="s-steps" aria-label="Steps">${steps.map((s, i) => `<li class="${i < at ? 'done' : i === at && it.state !== 'failed' ? 'now' : i === at ? 'stop' : ''}">${s[1]}</li>`).join('')}</ol>
     </div>`;
   }
-  const itemTitle = it => it.kind === 'model' ? 'Local AI' : it.kind === 'map' ? `${(mapById(it.id) || it).title || it.id} map` : it.kind === 'addresses' ? it.title : it.id === 'library' || it.id === 'repair' || /library/i.test(it.title) ? it.title : it.title + ' library';
+  const itemTitle = it => it.kind === 'model' ? 'Local AI' : it.kind === 'map' ? `${(mapById(it.id) || it).title || it.id} map` : it.kind === 'addresses' || it.kind === 'zim' ? it.title : it.id === 'library' || it.id === 'repair' || /library/i.test(it.title) ? it.title : it.title + ' library';
   /* an item that needs nothing from the internet: the person's own file, or one stopped after its download was complete.
      source and paused_from come from the engine (docs/SETUP-API.md); without them, a complete download still counts */
   const noDownload = it => it.source === 'found' || (!!it.paused_from && it.paused_from !== 'downloading') || (it.bytes_total > 0 && it.bytes_done >= it.bytes_total);
@@ -457,7 +496,7 @@
  else if (it.state === 'paused' || it.state === 'waiting' || it.state === 'failed') t = it.bytes_total && it.bytes_done ? `${size(it.bytes_done)} of ${size(it.bytes_total)}` : '';
     else if (it.state === 'verifying') t = 'Making sure every byte is right';
     else if (it.state === 'unpacking') t = it.bytes_total ? `Unpacking: ${size(it.bytes_done)} of ${size(it.bytes_total)}${it.eta_s != null ? ' · ' + eta(it.eta_s) : ''}` : 'Opening the files into the library folder';
-    else if (it.state === 'activating') t = it.kind === 'map' ? 'Switching to the new map' : 'Switching to the new library';
+    else if (it.state === 'activating') t = it.kind === 'map' ? 'Switching to the new map' : it.kind === 'zim' ? 'Adding it to the library' : 'Switching to the new library';
     line.textContent = t;
   }
   function jobView(j) {

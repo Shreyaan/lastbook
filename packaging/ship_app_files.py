@@ -68,6 +68,16 @@ def main():
             data.pop('_about', None)
         (out / 'content' / rel).write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding='utf-8')
         written.append(out / 'content' / rel)
+    # What setup offers beyond the manifest ships as pinned: every entry must pass the check setup itself makes.
+    sys.path.insert(0, str(ROOT))
+    from engine.setup import manifest
+    for name, key, load in (('encyclopedias.json', 'encyclopedias', manifest.load_encyclopedias),):
+        src = ROOT / 'content' / name
+        if not src.exists():
+            continue
+        if len(load(src)) != len(json.loads(src.read_text(encoding='utf-8'))[key]):
+            sys.exit(f'Not shipping: an entry in content/{name} fails setup’s check (host, name, size or SHA-256).')
+        shutil.copyfile(src, out / 'content' / name)
     bad = [str(EDITS['text'].keys() - used)] if EDITS['text'].keys() - used else []    # an edit that matched nothing: the guide changed, so look again
     for p in written:
         m = LEFT.search(p.read_text(encoding='utf-8', errors='replace'))

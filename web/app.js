@@ -103,7 +103,7 @@ async function api(u, opts) {
   return d;
 }
 let LIB = null;
-const libInfo = () => LIB || (LIB = api('/api/library').catch(() => { LIB = null; return {} }));   // what this library holds; a failed ask is asked again. An older server leaves out zims, pins and sources: then everything stays offered.
+const libInfo = () => LIB || (LIB = api('/api/library').then(i => { ZIMMETA = i.zim_info || {}; return i }).catch(() => { LIB = null; return {} }));   // what this library holds; a failed ask is asked again. An older server leaves out zims, pins and sources: then everything stays offered.
 let TOPICS = null;
 async function topics() {
   if (TOPICS) return TOPICS;
@@ -735,7 +735,8 @@ async function reader(id, page, from, view) {
 
 /* --------------------------------------------------------------- wiki -- */
 const ZIMNAMES = { mdwiki: 'Medical encyclopedia (MDWiki)', wikipedia: 'Wikipedia (text only)', wikibooks: 'Wikibooks — how-to textbooks', appropedia: 'Appropedia — appropriate technology' };
-const zimLabel = name => { for (const k in ZIMNAMES) if (name.startsWith(k)) return ZIMNAMES[k]; return name };
+let ZIMMETA = {};   // file name -> {title, ...} for encyclopedias setup added (/api/library zim_info)
+const zimLabel = name => { const m = ZIMMETA[name] || ZIMMETA[name + '.zim']; if (m && m.title) return m.title; for (const k in ZIMNAMES) if (name.startsWith(k)) return ZIMNAMES[k]; return name };
 async function wiki(path, from, y) {
   const [zim, ...rest] = path.split('/');
   const art = rest.join('/');
@@ -897,12 +898,22 @@ const ZIMS = [['mdwiki_en_all_maxi_2025-11.zim', 'Medical encyclopedia', 'MDWiki
 ['wikibooks_en_all_maxi_2026-04.zim', 'Wikibooks', 'Open textbooks and how-to manuals, from cooking to electronics.', 'book'],
 ['appropedia_en_all_maxi_2026-02.zim', 'Appropedia', 'Appropriate technology: water, sanitation, energy and building projects.', 'repair'],
 ['wikipedia_en_all_nopic_2026-06.zim', 'Wikipedia', 'The full English encyclopedia, text only (no pictures).', 'wiki']];
-const zimsHere = async () => { const here = (await libInfo()).zims; return here ? ZIMS.filter(z => here.includes(z[0])) : ZIMS };
+const edition = n => n.replace(/_\d{4}-\d{2}[a-z]?\.zim$/, '');   // the book, whatever its date
+const zimsHere = async () => {     // the files this library holds: the packs' four by their own words, any added one by its title
+  const info = await libInfo(), here = info.zims;
+  if (!here) return ZIMS;
+  ZIMMETA = info.zim_info || {};
+  const rank = n => { const i = ZIMS.findIndex(z => edition(z[0]) === edition(n)); return i < 0 ? ZIMS.length : i };
+  return here.slice().sort((a, b) => rank(a) - rank(b) || zimLabel(a).localeCompare(zimLabel(b))).map(n => {
+    const k = ZIMS.find(z => edition(z[0]) === edition(n)), m = ZIMMETA[n] || {};
+    return k ? [n, k[1], k[2], k[3]] : [n, m.title || n.replace(/\.zim$/, ''), m.summary || '', m.icon || 'wiki'];
+  });
+};
 async function encyclopedias(q) {
   setTitle('Encyclopedias');
   const zims = await zimsHere();
   if (!zims.length) { main.innerHTML = `<h1>Encyclopedias</h1><p class="lead">This download has no encyclopedias.</p>`; return }
-  main.innerHTML = `<h1>Encyclopedias</h1><p class="lead">${['', 'One complete encyclopedia', 'Two complete encyclopedias', 'Three complete encyclopedias', 'Four complete encyclopedias'][zims.length]}. Community-written: good for background — use the guides’ manuals for safety-critical steps.</p>
+  main.innerHTML = `<h1>Encyclopedias</h1><p class="lead">${zims.length === 1 ? 'One complete encyclopedia' : zims.length + ' complete encyclopedias'}. Community-written: good for background — use the guides’ manuals for safety-critical steps.</p>
   <div style="margin:16px 0">${searchBox('zq', q, 'e.g. tetanus, solar panel, sourdough')}</div><div id="zres"></div>
   ${secHead('Open one')}<div class="cards2">${zims.map(z => `<a class="card" href="#/wiki/${z[0]}/?from=${encodeURIComponent('#/encyclopedias')}"><span class="ico">${ico(z[3])}</span><b>${esc(z[1])}</b><small>${esc(z[2])}</small></a>`).join('')}</div>`;
   $('#zqF').addEventListener('submit', e => { e.preventDefault(); location.hash = '#/encyclopedias?q=' + encodeURIComponent($('#zq').value.trim()) });

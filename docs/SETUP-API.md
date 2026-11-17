@@ -66,6 +66,22 @@ Packs may be split into several files later; setup downloads all `files` of a pa
 and the hosts Hugging Face redirects model downloads to (`cas-bridge.xethub.hf.co`, `*.hf.co`; on 2026-11-12 the model resolved to `us.aws.cdn.hf.co`). R2 ignores If-Range, so the downloader compares the ETag itself. The exact list is a constant in
 `engine/setup/download.py`, and the package scan checks that it is the only module that opens connections.
 
+## Encyclopedias picked one by one (added 2026-11-18)
+
+`content/encyclopedias.json` (written by `tools/kiwix_pins.py`, shipped beside `web/`) lists ZIM files setup offers on their
+own: each with an `id` (the Kiwix book name without its date), a `file` (`name`, `url`, `size`, `sha256` from Kiwix's .meta4)
+and display fields. The publisher mirrors each Kiwix file unchanged on `downloads.lastbook.org` (`kiwix_pins.py --base` sets
+the address); `manifest.load_encyclopedias` drops any entry that is not exactly right or not on `manifest.PINNED_HOSTS`.
+
+- `POST /api/setup/start` takes `zims: [id, ...]` alongside the rest. Ones the library holds already (any edition) or the
+  chosen pack carries are skipped. In first-run mode a pack is still required.
+- Each becomes a job item of kind `zim`: downloaded, checked against its SHA-256, then moved into
+  `library-data/collections/` (the staged library when a pack switches, the open one otherwise). No unpacking, no restart.
+- Added files are recorded in `derived/encyclopedias.json` (name → SHA-256). `install.carry_over` moves exactly those into a
+  new library on an upgrade; a pack's own encyclopedias are never recorded, so they are never carried or removed.
+- `POST /api/setup/remove-encyclopedia {id}` deletes one the person added. `state.current` lists `encyclopedias` (ids here)
+  and `encyclopedias_added`; `state.pack_zims` says which ids each pack carries.
+
 ## Where things go
 
 - The library folder stays **LastbookData** (layout unchanged: `library-data/`, `derived/`). Default place: the person's

@@ -1251,6 +1251,144 @@ class ContentRevisions(Base):
         self.assertEqual(setup.start('small', folder=str(library))['code'], 'nothing')
 
 
+class Encyclopedias(Base):
+    """Encyclopedias picked one by one (content/encyclopedias.json): downloaded, checked, put in collections/, kept on upgrade."""
+
+    def zim_manifest(self):
+        mf = self.manifest()
+        self.hi, self.mr = os.urandom(MiB + 7), os.urandom(MiB // 2)
+        self.files.data['wikipedia_hi_medicine_nopic_2026-10.zim'] = self.hi
+        self.files.data['wikipedia_mr_all_nopic_2026-10.zim'] = self.mr
+        raw = [{'id': 'wikipedia_hi_medicine_nopic', 'title': 'Medical Wikipedia in Hindi', 'file': {'name': 'wikipedia_hi_medicine_nopic_2026-10.zim',
+                'url': f'{self.base}/wikipedia_hi_medicine_nopic_2026-10.zim', 'size': len(self.hi), 'sha256': sha(self.hi)}},
+               {'id': 'wikipedia_mr_all_nopic', 'title': 'Wikipedia in Marathi', 'file': {'name': 'wikipedia_mr_all_nopic_2026-10.zim',
+                'url': f'{self.base}/wikipedia_mr_all_nopic_2026-10.zim', 'size': len(self.mr), 'sha256': sha(self.mr)}},
+               {'id': 'mdwiki_en_all_maxi', 'title': 'Medical encyclopedia', 'file': {'name': 'mdwiki_en_all_maxi_2025-11.zim',
+                'url': f'{self.base}/mdwiki_en_all_maxi_2025-11.zim', 'size': 10, 'sha256': '0' * 64}}]
+        path = self.tmp / 'encyclopedias.json'
+        path.write_text(json.dumps({'encyclopedias': raw}))
+        mf.encyclopedias = manifest.load_encyclopedias(path, ALLOWED)
+        self.assertEqual(len(mf.encyclopedias), 3)
+        return mf
+
+    def library(self):
+        lib = self.parent / 'LastbookData'
+        (lib / 'library-data' / 'collections').mkdir(parents=True)
+        (lib / 'library-data' / 'catalog.json').write_text('{}')
+        (lib / 'pack.json').write_text('{"name": "small"}')
+        (lib / 'library-data' / 'collections' / 'mdwiki_en_all_maxi_2025-11.zim').write_bytes(b'pack copy')   # the pack's own
+        return lib
+
+    def test_first_run_with_pack(self):
+        mf = self.zim_manifest()
+        s = self.setup(manifest=mf)
+        j = s.start('small', zims=['wikipedia_hi_medicine_nopic', 'mdwiki_en_all_maxi'])   # Small carries MDWiki: not fetched again
+        self.assertEqual([(i['kind'], i['id']) for i in j['items']], [('pack', 'small'), ('zim', 'wikipedia_hi_medicine_nopic')])
+        self.assertEqual(self.wait(s)['state'], 'done')
+        lib, _ = api.startup(self.settings)
+        self.assertEqual((lib / install.ZIM_DIR / 'wikipedia_hi_medicine_nopic_2026-10.zim').read_bytes(), self.hi)
+        self.assertEqual(install.added_zims(lib), {'wikipedia_hi_medicine_nopic_2026-10.zim': sha(self.hi)})
+        self.assertIn('wikipedia_hi_medicine_nopic', self.setup('manage', current=lib, manifest=mf).current_info()['encyclopedias'])
+
+    def test_first_run_needs_a_library(self):
+        self.assertEqual(self.setup(manifest=self.zim_manifest()).start(None, zims=['wikipedia_hi_medicine_nopic'])['code'], 'nothing')
+
+    def test_added_in_place_then_removed(self):
+        mf, lib = self.zim_manifest(), self.library()
+        s = self.setup('manage', current=lib, manifest=mf)
+        self.assertEqual(s.current_info()['encyclopedias'], ['mdwiki_en_all_maxi'])
+        j = s.start(None, zims=['wikipedia_mr_all_nopic', 'mdwiki_en_all_maxi'])
+        self.assertEqual([i['id'] for i in j['items']], ['wikipedia_mr_all_nopic'])
+        self.assertEqual(self.wait(s)['state'], 'done')
+        self.assertEqual((lib / install.ZIM_DIR / 'wikipedia_mr_all_nopic_2026-10.zim').read_bytes(), self.mr)
+        info = s.current_info()
+        self.assertEqual(sorted(info['encyclopedias']), ['mdwiki_en_all_maxi', 'wikipedia_mr_all_nopic'])
+        self.assertEqual(info['encyclopedias_added'], ['wikipedia_mr_all_nopic'])
+        self.assertEqual(s.start(None, zims=['wikipedia_mr_all_nopic'])['code'], 'nothing')        # already here
+        self.assertEqual(s.remove_encyclopedia('mdwiki_en_all_maxi')['code'], 'nothing')            # the pack's own stays
+        self.assertTrue((lib / install.ZIM_DIR / 'mdwiki_en_all_maxi_2025-11.zim').exists())
+        self.assertEqual(s.remove_encyclopedia('wikipedia_mr_all_nopic')['removed'], 'wikipedia_mr_all_nopic')
+        self.assertFalse((lib / install.ZIM_DIR / 'wikipedia_mr_all_nopic_2026-10.zim').exists())
+        self.assertEqual(install.added_zims(lib), {})
+
+    def test_bad_requests(self):
+        s = self.setup('manage', current=self.library(), manifest=self.zim_manifest())
+        self.assertEqual(s.start(None, zims=['../../etc/passwd'])['code'], 'unavailable')
+        self.assertEqual(s.start(None, zims='wikipedia_mr_all_nopic')['code'], 'unavailable')
+        self.assertEqual(s.start(None, zims=[{'id': 1}])['code'], 'unavailable')
+        self.assertEqual(s.remove_encyclopedia(None)['code'], 'nothing')
+
+    def test_wrong_checksum_is_not_installed(self):
+        mf, lib = self.zim_manifest(), self.library()
+        self.files.corrupt['wikipedia_mr_all_nopic_2026-10.zim'] = 2      # wrong bytes on both tries
+        with fast_backoff():
+            s = self.setup('manage', current=lib, manifest=mf)
+            s.start(None, zims=['wikipedia_mr_all_nopic'])
+            j = self.wait(s)
+        self.assertEqual(j['state'], 'failed', j)
+        self.assertFalse((lib / install.ZIM_DIR / 'wikipedia_mr_all_nopic_2026-10.zim').exists())
+
+    def test_job_survives_a_restart(self):
+        mf, lib = self.zim_manifest(), self.library()
+        self.files.pace = 0.01
+        s = self.setup('manage', current=lib, manifest=mf)
+        s.start(None, zims=['wikipedia_hi_medicine_nopic'])
+        part = self.parent / 'LastbookData.setup' / 'downloads' / 'wikipedia_hi_medicine_nopic_2026-10.zim.part'
+        t0 = time.time()
+        while not (part.exists() and part.stat().st_size) and time.time() - t0 < 20:
+            time.sleep(0.02)
+        s.pause()
+        self.wait(s, ('paused',))
+        self.files.pace = 0
+        s2 = self.setup('manage', current=lib, manifest=mf)        # reads the saved job back through _checked_job
+        self.assertEqual([(i['kind'], i['state']) for i in s2.public_job()['items']], [('zim', 'paused')])
+        s2.resume()
+        self.assertEqual(self.wait(s2)['state'], 'done')
+        self.assertEqual((lib / install.ZIM_DIR / 'wikipedia_hi_medicine_nopic_2026-10.zim').read_bytes(), self.hi)
+
+    def test_kept_on_pack_upgrade(self):
+        old, new = self.tmp / 'old', self.tmp / 'new'
+        (old / install.ZIM_DIR).mkdir(parents=True)
+        (new / install.ZIM_DIR).mkdir(parents=True)
+        (old / install.ZIM_DIR / 'wikipedia_hi_all_nopic_2026-10.zim').write_bytes(b'added')
+        (old / install.ZIM_DIR / 'mdwiki_en_all_maxi_2025-11.zim').write_bytes(b'pack copy')       # not recorded: the pack's
+        (old / install.ZIM_DIR / 'wikibooks_en_all_maxi_2026-04.zim').write_bytes(b'added, old edition')
+        (new / install.ZIM_DIR / 'wikibooks_en_all_maxi_2026-04.zim').write_bytes(b'new pack copy')
+        install.record_zim(old, 'wikipedia_hi_all_nopic_2026-10.zim', 'a' * 64)
+        install.record_zim(old, 'wikibooks_en_all_maxi_2026-04.zim', 'b' * 64)
+        install.carry_over(old, new)
+        self.assertEqual((new / install.ZIM_DIR / 'wikipedia_hi_all_nopic_2026-10.zim').read_bytes(), b'added')
+        self.assertFalse((new / install.ZIM_DIR / 'mdwiki_en_all_maxi_2025-11.zim').exists())
+        self.assertEqual((new / install.ZIM_DIR / 'wikibooks_en_all_maxi_2026-04.zim').read_bytes(), b'new pack copy')
+        self.assertEqual(install.added_zims(new), {'wikipedia_hi_all_nopic_2026-10.zim': 'a' * 64})
+
+    def test_validation(self):
+        good = {'id': 'wikipedia_hi_all_nopic', 'file': {'name': 'wikipedia_hi_all_nopic_2026-10.zim', 'size': 5, 'sha256': 'a' * 64,
+                'url': 'https://downloads.lastbook.org/encyclopedias/wikipedia_hi_all_nopic_2026-10.zim'}}
+        bad = [{**good, 'file': {**good['file'], 'url': 'https://evil.example/wikipedia_hi_all_nopic_2026-10.zim'}},
+               {**good, 'file': {**good['file'], 'url': 'http://downloads.lastbook.org/encyclopedias/x.zim'}},
+               {**good, 'file': {**good['file'], 'name': '../wikipedia_hi_all_nopic_2026-10.zim'}},
+               {**good, 'file': {**good['file'], 'name': 'other_2026-10.zim'}},
+               {**good, 'file': {**good['file'], 'sha256': 'xyz'}},
+               {**good, 'file': {**good['file'], 'size': 0}},
+               good]                                         # a second entry with the same id
+        path = self.tmp / 'e.json'
+        path.write_text(json.dumps({'encyclopedias': [good] + bad}))
+        self.assertEqual([e['id'] for e in manifest.load_encyclopedias(path)], ['wikipedia_hi_all_nopic'])
+        path.write_text('not json')
+        self.assertEqual(manifest.load_encyclopedias(path), [])
+
+    def test_shipped_list(self):
+        if not manifest.encyclopedias_path().exists():
+            self.skipTest('no content/encyclopedias.json in this build')
+        es = manifest.load_encyclopedias()
+        raw = json.loads(manifest.encyclopedias_path().read_text(encoding='utf-8'))['encyclopedias']
+        self.assertEqual(len(es), len(raw))          # every pinned entry passes, its host included (manifest.PINNED_HOSTS)
+        self.assertTrue({'wikipedia_hi_medicine_nopic', 'wikipedia_en_all_nopic', 'mdwiki_en_all_maxi'} <= {e['id'] for e in es})
+        self.assertTrue(all(download.url_allowed(e['file']['url']) for e in es))
+        self.assertEqual(set(api.pack_zims({'id': 'small'})), {'mdwiki_en_all_maxi', 'appropedia_en_all_maxi'})
+
+
 class Recommend(Base):
     def hw(self, ram, free, gpus=(), unified=True):
         return {'ram_bytes': ram, 'gpus': list(gpus), 'unified_memory': unified, 'disks': [{'path': str(self.parent), 'free_bytes': free, 'total_bytes': 10 ** 12}],

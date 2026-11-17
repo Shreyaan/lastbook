@@ -54,7 +54,13 @@ other Linux distributions have not been validated for this release.
 - **Optional local AI.** Ask questions in plain words and get answers that cite library pages, from a model that runs on
   the computer itself (see "The local AI" below). Without it, Chat still finds the right pages.
 - **One-download setup.** On first run, setup defaults to Small and selects local AI when the computer can run it.
-  The person can choose Small, Medium or All, selects a state map, and starts the checked downloads. A library already on the
+  The person can choose Small, Medium or All, selects a state map (or skips it outside the US), and starts the checked downloads.
+- **Pick only what you want.** Encyclopedias can be added or removed one by one in setup, so a small library can still hold,
+  say, Wikipedia without Medium's videos. Besides the four English ones, Wikipedia and its medical articles are offered in 12
+  Indian languages (Hindi, Bengali, Telugu, Marathi, Tamil, Urdu, Gujarati, Kannada, Malayalam, Odia, Punjabi, Assamese).
+  Each file is Kiwix's own, mirrored unchanged on `downloads.lastbook.org` and pinned by name, size and SHA-256 in
+  `content/encyclopedias.json` (`tools/kiwix_pins.py` writes it from Kiwix's catalog). Ones the person added survive a library
+  upgrade. A library already on the
   computer (a folder or a pack zip) can be used instead of downloading.
 - **Check for updates, only when asked.** About has a Check for updates button (and the Mac menu has Lastbook > Check for
   Updates…). It only says whether a newer version is on the website; nothing is downloaded or installed.

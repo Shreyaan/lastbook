@@ -172,16 +172,21 @@ class Setup:
         addresses = self.manifest.address_index(ids('addresses')) if plan.get('addresses') else None
         if plan.get('addresses') and not addresses:
             return None
+        zim_ids = [z.get('id') for z in plan.get('zims') or [] if isinstance(z, dict)]
+        encyclopedias = [self.manifest.encyclopedia(z) for z in zim_ids]
+        if not all(encyclopedias):
+            return None
         if (plan.get('pack') and not pack) or (plan.get('map') and not mp) or (plan.get('model') and not model):
             return None
         wanted = {('pack', pack['id']) if pack else None, ('map', mp['id']) if mp else None, ('model', model['id']) if model else None, ('addresses', addresses['id']) if addresses else None} - {None}
+        wanted |= {('zim', e['id']) for e in encyclopedias}
         if {(i.get('kind'), i.get('id')) for i in items} != wanted:
             return None
-        names = ([f['name'] for f in pack['files']] if pack else []) + ([f['name'] for f in mp['files']] if mp else []) + ([f['name'] for f in addresses['files']] if addresses else []) + ([model['file']] if model else [])
+        names = ([f['name'] for f in pack['files']] if pack else []) + ([f['name'] for f in mp['files']] if mp else []) + ([f['name'] for f in addresses['files']] if addresses else []) + ([model['file']] if model else []) + [e['file']['name'] for e in encyclopedias]
         sources = {n: str(v) for n, v in (plan.get('sources') or {}).items()
                    if n in names and isinstance(v, str) and Path(v).name == n and Path(v).is_file()}
         switch = bool(plan.get('switch')) and pack is not None
-        clean = {'pack': pack, 'model': model, 'map': mp, 'addresses': addresses, 'parent': str(parent), 'target': str(target), 'work': str(work),
+        clean = {'pack': pack, 'model': model, 'map': mp, 'addresses': addresses, 'zims': encyclopedias, 'parent': str(parent), 'target': str(target), 'work': str(work),
                  'sources': sources, 'explicit': bool(plan.get('explicit')), 'retried': {}, 'switch': switch, 'repair': bool(plan.get('repair'))}
         if isinstance(plan.get('damaged'), list):
             clean['damaged'] = [str(x) for x in plan['damaged']]
@@ -218,6 +223,8 @@ class Setup:
             plan_files = plan['map']['files']
         elif it['kind'] == 'addresses' and plan.get('addresses'):
             plan_files = plan['addresses']['files']
+        elif it['kind'] == 'zim':
+            plan_files = [e['file'] for e in plan.get('zims') or [] if e['id'] == it['id']]
         else:
             plan_files = [{'name': plan['model']['file']}] if plan.get('model') else []
         n = 0
@@ -266,7 +273,19 @@ class Setup:
             p = self.current / 'models' / m['file']
             if p.is_file() and p.stat().st_size == m['size']:
                 model = m['id']
-        return {'folder': str(self.current), 'pack': pack, 'content_revision': revision, 'map_bytes': install.map_bytes(self.current), 'model': model, 'map': install.map_name(self.current), 'address_indexes': self.address_indexes(), 'old': self._settings().get('old', [])}
+        return {'folder': str(self.current), 'pack': pack, 'content_revision': revision, 'map_bytes': install.map_bytes(self.current), 'model': model, 'map': install.map_name(self.current), 'address_indexes': self.address_indexes(), 'old': self._settings().get('old', []),
+                'encyclopedias': self.encyclopedias_here(), 'encyclopedias_added': [self._zim_id(n) for n in install.added_zims(self.current)]}
+
+    def _zim_id(self, name):
+        return next((e['id'] for e in self.manifest.encyclopedias if name.startswith(e['id'] + '_')), name)
+
+    def encyclopedias_here(self):
+        """Ids of the offered encyclopedias this library holds, in any edition: a pack's copy counts the same as one added."""
+        try:
+            names = [p.name for p in (self.current / install.ZIM_DIR).glob('*.zim')]
+        except OSError:
+            return []
+        return [e['id'] for e in self.manifest.encyclopedias if any(n.startswith(e['id'] + '_') for n in names)]
 
     def address_indexes(self):
         if not self.current:
@@ -414,7 +433,8 @@ class Setup:
         self.manifest.fetch_once()
         hw = self.hardware()
         return {'mode': self.mode, 'hardware': hw, 'manifest': self.manifest.public(), 'current': self.current_info(),
-                'found': self.found(), 'recommend': self.recommend(hw), 'job': self.public_job()}
+                'found': self.found(), 'recommend': self.recommend(hw), 'job': self.public_job(),
+                'pack_zims': {p['id']: pack_zims(p) for p in self.manifest.current['packs']}}
 
     def public_job(self):
         with self.lock:
@@ -429,7 +449,7 @@ class Setup:
             return p.parent if p.name == DATA_NAME else p
         return self.current.parent if self.current else self.default_parent
 
-    def start(self, pack_id=None, ai=False, folder=None, sources=None, explicit=False, repair=False, map_id=None, address_id=None):
+    def start(self, pack_id=None, ai=False, folder=None, sources=None, explicit=False, repair=False, map_id=None, address_id=None, zims=None):
         if repair:
             return self._start_repair(ai)
         with self.lock:
@@ -466,13 +486,25 @@ class Setup:
             parent = target.parent
             if addresses and addresses['id'] in cur.get('address_indexes', []) and target == self.current:
                 addresses = None
+            if zims is not None and not (isinstance(zims, list) and len(zims) <= 100 and all(isinstance(z, str) for z in zims)):
+                return {'error': 'The encyclopedias asked for are not a list of names.', 'code': 'unavailable'}
+            encyclopedias = []
+            for zid in dict.fromkeys(zims or []):
+                e = self.manifest.encyclopedia(zid)
+                if not e:
+                    return {'error': 'That encyclopedia is not offered.', 'code': 'unavailable'}
+                if target == self.current and zid in cur.get('encyclopedias', []):
+                    continue       # already in this library, from its pack or added before
+                if pack and zid in pack_zims(pack):
+                    continue       # the chosen pack carries it already
+                encyclopedias.append(e)
             if model and cur.get('model') and target == self.current:
                 model = None       # already here, and an upgrade in place carries it over
             if mp and not pack and cur.get('map') == mp['id']:
                 mp = None          # this state's map is the one here already
-            if self.mode == 'first-run' and not pack and (model or mp or addresses):
+            if self.mode == 'first-run' and not pack and (model or mp or addresses or encyclopedias):
                 return {'error': 'Choose a library first.', 'code': 'nothing'}
-            if not pack and not model and not mp and not addresses:
+            if not pack and not model and not mp and not addresses and not encyclopedias:
                 if self.mode == 'first-run':
                     return {'error': 'Choose a library first.', 'code': 'nothing'}
                 return {'error': 'Nothing to add: this library and the local AI are already here.', 'code': 'nothing'}
@@ -495,9 +527,10 @@ class Setup:
             for f in self.found():
                 if f.get('size_ok') and f['name'] not in srcs and f['kind'] in ('pack', 'model', 'map', 'addresses'):
                     srcs[f['name']] = f['path']
-            names = ([f['name'] for f in pack['files']] if pack else []) + ([model['file']] if model else []) + ([f['name'] for f in mp['files']] if mp else []) + ([f['name'] for f in addresses['files']] if addresses else [])
+            names = ([f['name'] for f in pack['files']] if pack else []) + ([model['file']] if model else []) + ([f['name'] for f in mp['files']] if mp else []) + ([f['name'] for f in addresses['files']] if addresses else []) + [e['file']['name'] for e in encyclopedias]
             have = set(srcs)
             need = install.need_bytes(pack, model, have) + _map_need(mp, have) + _map_need(addresses, have)
+            need += sum(e['file']['size'] for e in encyclopedias if e['file']['name'] not in have)   # moved into place, not unpacked
             preserve_map = bool(pack and cur.get('pack') == pack['id'] and target == self.current and not mp and cur.get('map') not in (None, 'base'))
             if preserve_map:
                 need += cur['map_bytes']
@@ -523,12 +556,15 @@ class Setup:
             if addresses:
                 items.append({'id': addresses['id'], 'kind': 'addresses', 'title': addresses['title'] + ' address search', 'state': 'waiting', 'bytes_done': 0,
                               'bytes_total': addresses['download_bytes'], 'rate_bps': 0, 'eta_s': None, 'error': None})
+            for e in encyclopedias:
+                items.append({'id': e['id'], 'kind': 'zim', 'title': e['title'], 'state': 'waiting', 'bytes_done': 0,
+                              'bytes_total': e['file']['size'], 'rate_bps': 0, 'eta_s': None, 'error': None})
             if model:
                 items.append({'id': model['id'], 'kind': 'model', 'title': model['title'], 'state': 'waiting', 'bytes_done': 0,
                               'bytes_total': model['size'], 'rate_bps': 0, 'eta_s': None, 'error': None})
             self.job = {'id': uuid.uuid4().hex[:12], 'state': 'waiting', 'items': items, 'error': None, 'started': _now(),
                         'folder': str(target),
-                        'plan': {'pack': pack, 'model': model, 'map': mp, 'addresses': addresses, 'parent': str(parent), 'target': str(target), 'work': str(work),
+                        'plan': {'pack': pack, 'model': model, 'map': mp, 'addresses': addresses, 'zims': encyclopedias, 'parent': str(parent), 'target': str(target), 'work': str(work),
                                  'sources': {k: v for k, v in srcs.items() if k in names}, 'explicit': explicit,
                                  'retried': {}, 'switch': bool(pack)}}
             s = self._settings()
@@ -849,6 +885,8 @@ class Setup:
                     self._do_map(it, plan, work, control)
                 elif it['kind'] == 'addresses':
                     self._do_addresses(it, plan, work, control)
+                elif it['kind'] == 'zim':
+                    self._do_zim(it, plan, work, control)
                 else:
                     self._do_model(it, plan, work, control)
                 with self.lock:
@@ -1048,6 +1086,39 @@ class Setup:
         if not plan['switch'] and self.current:      # the library open now: the AI can use it at once
             self._mark_checked(dest, m['sha256'])
 
+    def _do_zim(self, it, plan, work, control):
+        e = next(x for x in plan['zims'] if x['id'] == it['id'])
+        path, ours = self._get_file(it, e['file'], plan, work, control, 0)
+        lib = (work / 'unpack' / DATA_NAME) if plan['switch'] else Path(self.current or plan['target'])
+        dest = lib / install.ZIM_DIR / e['file']['name']
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        self._set(it, 'activating')
+        if ours or _same_disk(path, dest):
+            os.replace(path, dest)
+        else:              # a file the person already had, on another disk: copied, and their own copy left as it was
+            tmp = dest.with_name(dest.name + '.partial')
+            shutil.copyfile(path, tmp)
+            os.replace(tmp, dest)
+        install.record_zim(lib, e['file']['name'], e['file']['sha256'])
+
+    def remove_encyclopedia(self, eid):
+        """Deletes an encyclopedia setup added (never one the pack carries: repair would only fetch it again)."""
+        with self.lock:
+            if self.job and self.job['state'] in ACTIVE + ('paused',):
+                return {'error': 'A download is under way. Wait for it, or cancel it first.', 'code': 'busy'}
+            e = self.manifest.encyclopedia(eid) if isinstance(eid, str) else None
+            if not self.current or not e:
+                return {'error': 'That encyclopedia is not here.', 'code': 'nothing'}
+            name = next((n for n in install.added_zims(self.current) if n.startswith(e['id'] + '_')), None)
+            if not name:
+                return {'error': 'That encyclopedia came with the library, so it stays.', 'code': 'nothing'}
+            try:
+                (self.current / install.ZIM_DIR / name).unlink(missing_ok=True)
+            except OSError as x:
+                return {'error': f'Lastbook could not delete it ({type(x).__name__}). Close anything using it, then try again.', 'code': 'busy'}
+            install.record_zim(self.current, name, None)
+            return {'removed': e['id'], 'current': self.current_info()}
+
     def _mark_checked(self, path, sha256):
         llm = self.llm()
         if not llm:
@@ -1099,6 +1170,19 @@ def _tag_sources(job):
         else:
             names = []
         it['source'] = 'found' if names and all(n in plan['sources'] for n in names) else 'download'
+
+
+def pack_zims(pack):
+    """Ids of the offered encyclopedias a pack carries: its manifest 'zims' list when it has one, else what the packs published
+    so far hold (derived/packs/pack-spec.json, sizes.*.zim)."""
+    names = pack.get('zims') if isinstance(pack.get('zims'), list) else PACK_ZIMS.get(pack['id'], [])
+    return [n.rsplit('_', 1)[0] for n in names if isinstance(n, str)]
+
+
+PACK_ZIMS = {'small': ['mdwiki_en_all_maxi_2025-11.zim', 'appropedia_en_all_maxi_2026-02.zim'],
+             'medium': ['mdwiki_en_all_maxi_2025-11.zim', 'appropedia_en_all_maxi_2026-02.zim', 'wikibooks_en_all_maxi_2026-04.zim'],
+             'all': ['mdwiki_en_all_maxi_2025-11.zim', 'appropedia_en_all_maxi_2026-02.zim', 'wikibooks_en_all_maxi_2026-04.zim',
+                     'wikipedia_en_all_nopic_2026-06.zim']}
 
 
 def _map_need(mp, have):
@@ -1229,7 +1313,7 @@ def _default():
 ROUTES = {
     ('GET', 'state'): lambda s, b: s.state(),
     ('GET', 'job'): lambda s, b: s.public_job(),
-    ('POST', 'start'): lambda s, b: s.start(b.get('pack'), bool(b.get('ai')), b.get('folder'), repair=bool(b.get('repair')), map_id=b.get('map') or None, address_id=b.get('address_id') or None),
+    ('POST', 'start'): lambda s, b: s.start(b.get('pack'), bool(b.get('ai')), b.get('folder'), repair=bool(b.get('repair')), map_id=b.get('map') or None, address_id=b.get('address_id') or None, zims=b.get('zims')),
     ('POST', 'pause'): lambda s, b: s.pause(),
     ('POST', 'resume'): lambda s, b: s.resume(),
     ('POST', 'cancel'): lambda s, b: s.cancel(),
@@ -1239,6 +1323,7 @@ ROUTES = {
     ('POST', 'pick'): lambda s, b: s.pick(files=b.get('files') is True),
     ('POST', 'delete-old'): lambda s, b: s.delete_old(b.get('path')),
     ('POST', 'remove-ai'): lambda s, b: s.remove_ai(),
+    ('POST', 'remove-encyclopedia'): lambda s, b: s.remove_encyclopedia(b.get('id')),
 }
 
 
