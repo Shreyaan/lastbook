@@ -1933,6 +1933,8 @@ class Handler(library.Handler):
             if n > 200_000:
                 return self.send_json({'error': 'request too large'}, 413)
             req = json.loads(self.rfile.read(n) or b'{}')
+            if not isinstance(req, dict):
+                raise ValueError
         except ValueError:
             return self.send_json({'error': 'bad request'}, 400)
         msgs = [m for m in (req.get('messages') or []) if isinstance(m, dict)][-12:]
@@ -2132,10 +2134,10 @@ def serve(port, lan=False):
             kf.write_text(secrets.token_urlsafe(18))
             os.chmod(kf, 0o600)
         LAN_KEY = kf.read_text(encoding='utf-8').strip()
-    server_class = library.http.server.ThreadingHTTPServer
+    class server_class(library.http.server.ThreadingHTTPServer):
+        request_queue_size = 128  # socketserver's default of 5 resets a browser's burst of parallel requests (map tiles)
     if os.name == 'nt':  # SO_REUSEADDR on Windows lets a second copy silently share the port
-        class server_class(server_class):
-            allow_reuse_address = False
+        server_class.allow_reuse_address = False
     srv = SERVER = server_class(('0.0.0.0' if lan else '127.0.0.1', port), Handler)
     print(f'Lastbook: http://127.0.0.1:{port}/', flush=True)
     if lan:
