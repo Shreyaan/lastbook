@@ -119,7 +119,7 @@ source, so no federal list needs replacing. Each answer to the questions above:
 |---|---|
 | Source | Geofabrik's six India zone extracts (`<zone>-latest-free.gpkg.zip`, ODbL 1.0), converted by `tools/build_map.py` |
 | What a "state" is | Each of the 28 states and 8 union territories, by ISO 3166-2:IN code (`IN-MH`), which cannot collide with a US code |
-| Its box | Natural Earth admin-1 (public domain) outline's bounding box, plus the same 0.15° as US states. Only the box is used; no boundary is drawn or shipped |
+| Its box | Natural Earth admin-1 (public domain): each outline ring's bounding box plus the same 0.15° as US states, boxes that touch merged, so Puducherry's four enclaves and Dadra and Nagar Haveli and Daman and Diu's two parts stay apart. Only boxes are used; no boundary is drawn or shipped. Natural Earth's older codes are mapped to today's (`IN-OD`, `IN-CG`, `IN-TS`, `IN-UK`, `IN-DH`) |
 | Places | A `places.sqlite` of the state's named cities, towns, villages, suburbs and localities from OpenStreetMap |
 | Addresses | None: OpenStreetMap's Indian address data is too thin for street search. People search by place name instead |
 | Not included | Terrain, buildings beyond OpenStreetMap's own, crops and water inventories: their US sources have no Indian pipeline here yet |

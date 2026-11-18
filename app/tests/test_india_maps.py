@@ -44,7 +44,7 @@ class Cut(unittest.TestCase):
 
     def test_set(self):
         box = (72.0, 17.5, 76.0, 21.0)
-        lib = B.cut('IN-MH', 'Maharashtra', box)
+        lib = B.cut('IN-MH', 'Maharashtra', [box])
         db = sqlite3.connect(lib / 'derived/geo/national.sqlite')
         self.assertEqual(sorted(r[0] for r in db.execute('SELECT name FROM feat')), ['Margin', 'NH 48', 'Pune'])      # once, and not 'Far'
         self.assertEqual(db.execute('SELECT count(*) FROM feat_idx').fetchone()[0], 3)
@@ -58,8 +58,19 @@ class Cut(unittest.TestCase):
         self.assertEqual(install.check_map(lib)['name'], 'IN-MH')
         self.assertEqual(install.map_name(lib), 'IN-MH')
 
+    def test_exclaves(self):
+        """Two boxes far apart (as Puducherry's enclaves): what lies between them is not in the map."""
+        lib = B.cut('IN-PY', 'Puducherry', [(71.9, 17.9, 72.2, 18.1), (79.9, 24.9, 80.2, 25.2)])
+        db = sqlite3.connect(lib / 'derived/geo/national.sqlite')
+        self.assertEqual(sorted(r[0] for r in db.execute('SELECT name FROM feat')), ['Far', 'Margin'])        # not NH 48 or Pune
+        self.assertEqual(db.execute('SELECT name FROM poi').fetchall(), [('Far away',)])
+
+    def test_merge_boxes(self):
+        self.assertEqual(B.merge_boxes([(0, 0, 2, 2), (1, 1, 3, 3), (10, 10, 11, 11)]), [(0, 0, 3, 3), (10, 10, 11, 11)])
+        self.assertEqual(B.merge_boxes([(0, 0, 1, 1), (2, 2, 3, 3), (0.5, 0.5, 2.5, 2.5)]), [(0, 0, 3, 3)])   # a chain merges
+
     def test_zip_and_parts(self):
-        lib = B.cut('IN-MH', 'Maharashtra', (72.0, 17.5, 76.0, 21.0))
+        lib = B.cut('IN-MH', 'Maharashtra', [(72.0, 17.5, 76.0, 21.0)])
         (out,) = B.zip_set('IN-MH', lib)
         names = zipfile.ZipFile(out[0]).namelist()
         self.assertIn('LastbookData/map-set.json', names)

@@ -43,11 +43,12 @@ PART_LIMIT = 1_900_000_000         # GitHub Releases takes files under 2 GiB
 SOURCE = 'OpenStreetMap contributors, via Geofabrik India zone extracts (ODbL 1.0)'
 INCLUDES = 'Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water'
 PLACE_RANK = {'city': 1, 'town': 2, 'suburb': 3, 'village': 3, 'hamlet': 4, 'locality': 4, 'island': 3}
-# Natural Earth still carries some pre-2020 codes and names; the app shows today's (ISO 3166-2:IN, 2023).
-CODES = {'IN-OR': 'IN-OD', 'IN-TS': 'IN-TG', 'IN-DD': 'IN-DH', 'IN-DN': 'IN-DH'}
-NAMES = {'IN-OD': 'Odisha', 'IN-DH': 'Dadra and Nagar Haveli and Daman and Diu', 'IN-DL': 'Delhi',
-         'IN-AN': 'Andaman and Nicobar Islands', 'IN-JK': 'Jammu and Kashmir', 'IN-LA': 'Ladakh', 'IN-PY': 'Puducherry',
-         'IN-UK': 'Uttarakhand', 'IN-TG': 'Telangana'}
+# Natural Earth carries some codes ISO has since changed; the app uses today's (ISO 3166-2:IN, Newsletter 2020-11-24 and
+# later: IN-OR > IN-OD, IN-CT > IN-CG, IN-TG > IN-TS, IN-UT > IN-UK; IN-DD and IN-DN merged as IN-DH).
+CODES = {'IN-OR': 'IN-OD', 'IN-CT': 'IN-CG', 'IN-TG': 'IN-TS', 'IN-UT': 'IN-UK', 'IN-DD': 'IN-DH', 'IN-DN': 'IN-DH'}
+NAMES = {'IN-OD': 'Odisha', 'IN-CG': 'Chhattisgarh', 'IN-TS': 'Telangana', 'IN-UK': 'Uttarakhand', 'IN-DL': 'Delhi',
+         'IN-DH': 'Dadra and Nagar Haveli and Daman and Diu', 'IN-AN': 'Andaman and Nicobar Islands',
+         'IN-JK': 'Jammu and Kashmir', 'IN-LA': 'Ladakh', 'IN-PY': 'Puducherry'}
 SCHEMA = '''CREATE TABLE feat(id INTEGER PRIMARY KEY, layer TEXT, cls TEXT, name TEXT, minz INTEGER, geom BLOB);
   CREATE VIRTUAL TABLE feat_idx USING rtree(id, minx, maxx, miny, maxy, minz, maxz);
   CREATE TABLE poi(id INTEGER PRIMARY KEY, cls TEXT, name TEXT, lon REAL, lat REAL);
@@ -92,43 +93,75 @@ def _dbf(data):
     for r in range(n):
         rec, pos, row = header + r * size, 1, {}
         for name, length in fields:
-            row[name] = data[rec + pos:rec + pos + length].decode('utf-8', 'replace').strip()
+            row[name] = data[rec + pos:rec + pos + length].decode('utf-8', 'replace').strip(' \x00')   # padded with spaces or NULs
             pos += length
         yield row
 
 
-def _shp_boxes(data):
-    """Each record's bounding box (west, south, east, north), in file order."""
+def _shp_rings(data):
+    """Each record's rings as bounding boxes [(west, south, east, north), ...], in file order (polygon records)."""
     o = 100
     while o < len(data):
         length = struct.unpack_from('>i', data, o + 4)[0] * 2
-        shape = struct.unpack_from('<i', data, o + 8)[0]
-        yield struct.unpack_from('<4d', data, o + 12) if shape else None
+        rec = o + 8
+        if struct.unpack_from('<i', data, rec)[0] == 0:
+            yield []
+        else:
+            nparts, npoints = struct.unpack_from('<2i', data, rec + 36)
+            starts = list(struct.unpack_from(f'<{nparts}i', data, rec + 44)) + [npoints]
+            pts = rec + 44 + 4 * nparts
+            rings = []
+            for a, b in zip(starts, starts[1:]):
+                xy = struct.unpack_from(f'<{2 * (b - a)}d', data, pts + 16 * a)
+                rings.append((min(xy[0::2]), min(xy[1::2]), max(xy[0::2]), max(xy[1::2])))
+            yield rings
         o += 8 + length
 
 
+def merge_boxes(boxes):
+    """Boxes that touch or overlap become one, until none do: a state is one box, an exclave its own."""
+    boxes = [list(b) for b in boxes]
+    merged = True
+    while merged:
+        merged = False
+        for i in range(len(boxes)):
+            for j in range(i + 1, len(boxes)):
+                a, b = boxes[i], boxes[j]
+                if a[0] <= b[2] and b[0] <= a[2] and a[1] <= b[3] and b[1] <= a[3]:
+                    boxes[i] = [min(a[0], b[0]), min(a[1], b[1]), max(a[2], b[2]), max(a[3], b[3])]
+                    del boxes[j]
+                    merged = True
+                    break
+            if merged:
+                break
+    return sorted(tuple(b) for b in boxes)
+
+
 def state_boxes():
-    """{code: (name, (west, south, east, north))} for India's states and union territories, merged where codes merged."""
+    """{code: (name, [(west, south, east, north), ...])} for India's states and union territories: each outline ring's box
+    plus MARGIN, those that touch merged. Puducherry's four enclaves stay apart, so its map is not most of the south."""
     with zipfile.ZipFile(SRC / 'ne_10m_admin_1_states_provinces.zip') as zf:
         shp = zf.read(next(n for n in zf.namelist() if n.endswith('.shp')))
         dbf = zf.read(next(n for n in zf.namelist() if n.endswith('.dbf')))
-    out = {}
-    for row, box in zip(_dbf(dbf), _shp_boxes(shp)):
-        if row.get('adm0_a3') != 'IND' or not box or not row.get('iso_3166_2', '').startswith('IN-'):
+    names, rings = {}, {}
+    for row, record in zip(_dbf(dbf), _shp_rings(shp)):
+        if row.get('adm0_a3') != 'IND' or not record or not row.get('iso_3166_2', '').startswith('IN-'):
             continue
         code = CODES.get(row['iso_3166_2'], row['iso_3166_2'])
-        name = NAMES.get(code, row.get('name'))
-        if code in out:
-            b = out[code][1]
-            box = (min(b[0], box[0]), min(b[1], box[1]), max(b[2], box[2]), max(b[3], box[3]))
-        out[code] = (name, box)
-    return {c: (n, (b[0] - MARGIN, b[1] - MARGIN, b[2] + MARGIN, b[3] + MARGIN)) for c, (n, b) in sorted(out.items())}
+        names[code] = NAMES.get(code, row.get('name'))
+        rings.setdefault(code, []).extend((w - MARGIN, s - MARGIN, e + MARGIN, n + MARGIN) for w, s, e, n in record)
+    return {c: (names[c], merge_boxes(rings[c])) for c in sorted(names)}
 
 
 # --------------------------------------------------------------------------------------------------------------- states --
-def cut(code, name, box):
-    """The state's map set in SETS/<code>/LastbookData. Returns its folder."""
-    w, s, e, n = box
+def cut(code, name, boxes):
+    """The state's map set in SETS/<code>/LastbookData, from every row inside any of its boxes. Returns its folder."""
+    hit = ' OR '.join(['(i.maxx>=? AND i.minx<=? AND i.maxy>=? AND i.miny<=?)'] * len(boxes))
+    hit_args = [v for w, s, e, n in boxes for v in (w, e, s, n)]
+    pin = ' OR '.join(['(lon BETWEEN ? AND ? AND lat BETWEEN ? AND ?)'] * len(boxes))
+
+    def inside(x, y):        # the state itself, without the margin: for the place finder
+        return any(w + MARGIN <= x <= e - MARGIN and s + MARGIN <= y <= n - MARGIN for w, s, e, n in boxes)
     lib = SETS / code / 'LastbookData'
     shutil.rmtree(SETS / code, ignore_errors=True)
     geo = lib / 'derived' / 'geo'
@@ -141,7 +174,7 @@ def cut(code, name, box):
         z = sqlite3.connect(f'file:{ZONES / zone}.sqlite?immutable=1', uri=True)
         as_of.append(dict(z.execute('SELECT key,value FROM meta')).get('data_as_of', ''))
         rows = z.execute('SELECT f.layer,f.cls,f.name,f.minz,f.geom,i.minx,i.maxx,i.miny,i.maxy,i.maxz FROM feat_idx i '
-                         'JOIN feat f ON f.id=i.id WHERE i.maxx>=? AND i.minx<=? AND i.maxy>=? AND i.miny<=?', (w, e, s, n))
+                         f'JOIN feat f ON f.id=i.id WHERE {hit}', hit_args)
         for layer, cls, nm, minz, geom, x0, x1, y0, y1, maxz in rows:
             key = hashlib.blake2b(geom, digest_size=12).digest() + layer.encode()
             if key in seen_feat:      # a way that crosses a zone border is in both zones' extracts
@@ -150,9 +183,9 @@ def cut(code, name, box):
             fid += 1
             nat.execute('INSERT INTO feat VALUES (?,?,?,?,?,?)', (fid, layer, cls, nm, minz, geom))
             nat.execute('INSERT INTO feat_idx VALUES (?,?,?,?,?,?,?)', (fid, x0, x1, y0, y1, minz, maxz))
-            if layer == 'place' and nm and w + MARGIN <= x0 <= e - MARGIN and s + MARGIN <= y0 <= n - MARGIN:
+            if layer == 'place' and nm and inside(x0, y0):
                 places.append((nm, cls, x0, y0))
-        for cls, nm, lon, lat in z.execute('SELECT cls,name,lon,lat FROM poi WHERE lon BETWEEN ? AND ? AND lat BETWEEN ? AND ?', (w, e, s, n)):
+        for cls, nm, lon, lat in z.execute(f'SELECT cls,name,lon,lat FROM poi WHERE {pin}', hit_args):
             key = (cls, round(lon, 6), round(lat, 6))
             if key in seen_poi:
                 continue
@@ -163,7 +196,7 @@ def cut(code, name, box):
     status = {'state': 'complete', 'stage': 'ready', 'features': fid}
     nat.execute('CREATE INDEX poi_cls ON poi(cls, lon, lat)')
     nat.executemany('INSERT INTO meta VALUES (?,?)', [('source', SOURCE), ('data_as_of', max(as_of)), ('region', f'{name}, India'),
-                                                      ('bounds', ','.join(f'{v:.2f}' for v in box)), ('status', json.dumps(status)),
+                                                      ('bounds', ';'.join(','.join(f'{v:.2f}' for v in b) for b in boxes)), ('status', json.dumps(status)),
                                                       ('built', time.strftime('%Y-%m-%dT%H:%M:%S'))])
     nat.commit()
     nat.execute('VACUUM')
@@ -222,8 +255,8 @@ def states(codes):
         raise SystemExit(f'not a state or union territory code here: {sorted(unknown)}; have {sorted(boxes)}')
     done = json.loads((WORK / 'states.json').read_text()) if (WORK / 'states.json').exists() else {}
     for code in codes or boxes:
-        name, box = boxes[code]
-        lib = cut(code, name, box)
+        name, parts = boxes[code]
+        lib = cut(code, name, parts)
         zips = zip_set(code, lib)
         done[code] = {'title': name, 'installed_bytes': json.loads((lib / 'map-set.json').read_text())['bytes'],
                       'files': [{'name': p.name, 'size': p.stat().st_size, 'sha256': sha256(p)} for p, _ in zips]}
@@ -267,8 +300,8 @@ def main():
     elif cmd == 'pins' and len(sys.argv) == 3 and sys.argv[2].startswith('https://'):
         pins(sys.argv[2])
     elif cmd == 'boxes':
-        for code, (name, box) in state_boxes().items():
-            print(code, name, ' '.join(f'{v:.2f}' for v in box))
+        for code, (name, parts) in state_boxes().items():
+            print(f'{code:6} {name:45}', '  '.join(','.join(f'{v:.2f}' for v in b) for b in parts))
     else:
         raise SystemExit(__doc__)
 
