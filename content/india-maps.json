@@ -1,0 +1,653 @@
+{
+ "about": "Indian state maps setup offers. Written by tools/build_india_maps.py pins; edit that, not this.",
+ "maps": [
+  {
+   "id": "IN-AN",
+   "title": "Andaman and Nicobar Islands",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 7671868,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-AN.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-AN.zip",
+     "size": 2423076,
+     "sha256": "7327ffcf40871975df57056e965d43c6a0568d632e08c11df225c69dc7a72122",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-AP",
+   "title": "Andhra Pradesh",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 1115381822,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-AP.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-AP.zip",
+     "size": 331143703,
+     "sha256": "f59b8828c442256ccb9d651a4a93f195889225a0bbc170cb60c2052da799af11",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-AR",
+   "title": "Arunachal Pradesh",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 128073789,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-AR.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-AR.zip",
+     "size": 39602964,
+     "sha256": "c7b7988701ae2ff79c7830ed054cc3e4d42dc4fac3e10f78567600968f45a467",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-AS",
+   "title": "Assam",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 326008894,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-AS.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-AS.zip",
+     "size": 101283588,
+     "sha256": "b8df91fa2cbee32892b230ea95b2aa9367747a8e8f122a7219d836e6861069fd",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-BR",
+   "title": "Bihar",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 348983358,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-BR.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-BR.zip",
+     "size": 116956551,
+     "sha256": "f3f6bd967cd412c36d1063d5647c9f3e10fefe71145a8c3b16a7a9fc9e98be51",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-CH",
+   "title": "Chandigarh",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 18268221,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-CH.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-CH.zip",
+     "size": 5574645,
+     "sha256": "8452aed5e89a857d987cbb458d0368331fd59cd2ec9746fbd59622afd58788a3",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-CG",
+   "title": "Chhattisgarh",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 284815422,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-CG.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-CG.zip",
+     "size": 95536359,
+     "sha256": "0aa61ecd467d87aa3dc0fa2f57727e5d7246cc942de17394687f915448997543",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-DH",
+   "title": "Dadra and Nagar Haveli and Daman and Diu",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 8228924,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-DH.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-DH.zip",
+     "size": 2662596,
+     "sha256": "1bb17600198740ba6c5ab34a7107bdcedb5790f5ac873a34e3d4e46b504ddbb6",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-DL",
+   "title": "Delhi",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 153444413,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-DL.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-DL.zip",
+     "size": 45858891,
+     "sha256": "c668093922a51f917cc222950069103e4fda2e60248c659405824f0cd02d6543",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-GA",
+   "title": "Goa",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 20496444,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-GA.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-GA.zip",
+     "size": 7458990,
+     "sha256": "3016cd399b66891647966c87c85195cf7aae963101bb07c58e6eb153d63fa87d",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-GJ",
+   "title": "Gujarat",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 275419198,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-GJ.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-GJ.zip",
+     "size": 90868885,
+     "sha256": "010e72bd47e60e2292dab49da6f07bcc058230f3ae6d9872321e2afdb0d98763",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-HR",
+   "title": "Haryana",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 388702270,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-HR.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-HR.zip",
+     "size": 126992013,
+     "sha256": "301a5bafd4731b9c531ccff5633ac7b25e4a47b5d2bfad597e826c4bd2fa634e",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-HP",
+   "title": "Himachal Pradesh",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 162992189,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-HP.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-HP.zip",
+     "size": 56810098,
+     "sha256": "c2c1552bb6fabd46c9dc2a05c22fba90e6b8118ddb5cf59d3b744036f52f23db",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-JK",
+   "title": "Jammu and Kashmir",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 63483965,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-JK.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-JK.zip",
+     "size": 23183804,
+     "sha256": "d789888fe3ed12d0a65698a9111c9310f867447172324e55bd237837d909a643",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-JH",
+   "title": "Jharkhand",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 201076797,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-JH.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-JH.zip",
+     "size": 72179739,
+     "sha256": "11b3a1bfdbc0e3cb31138c79d3579ec61a29e5867e82a49c06a888e9a0e12055",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-KA",
+   "title": "Karnataka",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 900345918,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-KA.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-KA.zip",
+     "size": 273064121,
+     "sha256": "c5c665bb072c12eee5d2e4a3fe339711860060a56e7cbdc9a4f00ef31c59c5f9",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-KL",
+   "title": "Kerala",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 717058110,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-KL.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-KL.zip",
+     "size": 218020476,
+     "sha256": "dbba9066067c315d9c8ad34d3d1448b08927147e7442c910e14c48c318da2e36",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-LA",
+   "title": "Ladakh",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 38572093,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-LA.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-LA.zip",
+     "size": 14620354,
+     "sha256": "fc211eef93909dc86fa29e40a7b0c46cdaa32597a5e022014fc8396925a95912",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-LD",
+   "title": "Lakshadweep",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 573499,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-LD.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-LD.zip",
+     "size": 157964,
+     "sha256": "c1f6f80863e088667113bc9ad84bfcc65c804c2bb006a087df1ceb0acb018ecb",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-MP",
+   "title": "Madhya Pradesh",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 942645310,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-MP.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-MP.zip",
+     "size": 297516892,
+     "sha256": "146cdea61b5c7a3112ddf7c6ade18e79a09774cbb350ab40e4b30d2f8fdf8e6c",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-MH",
+   "title": "Maharashtra",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 1120071742,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-MH.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-MH.zip",
+     "size": 344743019,
+     "sha256": "37ea5026b439e59e3882c2201a4dfef84eea5fe014de8f6fd2d45b001da2eb06",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-MN",
+   "title": "Manipur",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 35594301,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-MN.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-MN.zip",
+     "size": 12660186,
+     "sha256": "1387ae0f3e5412b3531884bdc647ab4512c145f188ed6abc2fd36c813ea104f8",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-ML",
+   "title": "Meghalaya",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 71467069,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-ML.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-ML.zip",
+     "size": 22553650,
+     "sha256": "62f1b104ea6c828c86e3aae0c0a0e52774821f2677d310e9a72b01e62b11c461",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-MZ",
+   "title": "Mizoram",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 63377469,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-MZ.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-MZ.zip",
+     "size": 19183716,
+     "sha256": "1d45ff7671a911e56a94cff64d62c69716620d4f9a63525d8b5ce19c36486e05",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-NL",
+   "title": "Nagaland",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 91418685,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-NL.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-NL.zip",
+     "size": 28131801,
+     "sha256": "f235753e77f584ef08b6fb51d061f0f1c9288c1cc90ea4f75688631daaa897ba",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-OD",
+   "title": "Odisha",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 208556093,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-OD.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-OD.zip",
+     "size": 72268770,
+     "sha256": "db2122c0f5aef2ab539d1a74a921c0e1c84c498be15c4532efe1a2937463ffb2",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-PY",
+   "title": "Puducherry",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 98295869,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-PY.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-PY.zip",
+     "size": 27496236,
+     "sha256": "03bb19f33514a21e8c564df00f99afff0b7147d132efcc6bf15eaaefde27bf55",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-PB",
+   "title": "Punjab",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 197349437,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-PB.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-PB.zip",
+     "size": 67879325,
+     "sha256": "0f8af490509ef526c9e94b93902480f68005807859a90078b9e086abaa587512",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-RJ",
+   "title": "Rajasthan",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 753893438,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-RJ.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-RJ.zip",
+     "size": 249542743,
+     "sha256": "5aed153f84d26f3c47679f2a34eeef5bc392778b5863cf64d792e6a31f4c2503",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-SK",
+   "title": "Sikkim",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 48734269,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-SK.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-SK.zip",
+     "size": 14893680,
+     "sha256": "71abb3ce5804ebf60ff15a8131256fb5e7e251647ebfe830a990336f5da55223",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-TN",
+   "title": "Tamil Nadu",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 1060139070,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-TN.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-TN.zip",
+     "size": 326934219,
+     "sha256": "6c2e7e3a8a504b4bfccfe644dd043d30d0a06ce4680c8abf4811f27eaa980b12",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-TS",
+   "title": "Telangana",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 610869310,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-TS.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-TS.zip",
+     "size": 177778394,
+     "sha256": "dd07e4690e492af9c4f93e9d32fb34cf2c65b3dd8ea5cd9387f15c413923cdb0",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-TR",
+   "title": "Tripura",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 50159677,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-TR.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-TR.zip",
+     "size": 14527062,
+     "sha256": "6ec7718febac95f5eab798641bb041478783e869dcaff085d82f09c35a25459f",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-UP",
+   "title": "Uttar Pradesh",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 1052827710,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-UP.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-UP.zip",
+     "size": 340277092,
+     "sha256": "450cf377775a37bae8c473ed0f485e2577572b123e586d8f5b69d3e43430c3b1",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-UK",
+   "title": "Uttarakhand",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 145608765,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-UK.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-UK.zip",
+     "size": 51331007,
+     "sha256": "82f71e691993b0d8af0272eb7d26164672add7f3e559886738cea85338869c96",
+     "kind": "zip"
+    }
+   ]
+  },
+  {
+   "id": "IN-WB",
+   "title": "West Bengal",
+   "country": "IN",
+   "kind": "state",
+   "includes": "Streets, towns and villages, plus hospitals, clinics, pharmacies, police, fire stations and drinking water",
+   "installed_bytes": 619413566,
+   "available": true,
+   "files": [
+    {
+     "name": "Lastbook-Map-IN-WB.zip",
+     "url": "https://github.com/Shreyaan/lastbook/releases/download/india-maps-2026-11/Lastbook-Map-IN-WB.zip",
+     "size": 191364250,
+     "sha256": "58a8cc7a6f7318d4917a8dd90a0e31174f4ed31088ce716bce776e1c106fe996",
+     "kind": "zip"
+    }
+   ]
+  }
+ ]
+}
